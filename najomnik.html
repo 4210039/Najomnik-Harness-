@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NájomApp — Formulár záujemcu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  /* Core palette — slate-navy professional */
+  --ink:        #0F1623;
+  --ink-2:      #1E2A3B;
+  --ink-3:      #344054;
+  --muted:      #667085;
+  --subtle:     #98A2B3;
+  --border:     #E4E7EC;
+  --border-2:   #D0D5DD;
+  --bg:         #F5F6FA;
+  --surface:    #FFFFFF;
+  --surface-2:  #F9FAFB;
+  --surface-3:  #F2F4F7;
+
+  /* Accent — deep indigo */
+  --accent:       #3B5BDB;
+  --accent-hover: #2F4AC7;
+  --accent-light: #EEF2FF;
+  --accent-mid:   #C5D0FA;
+
+  /* Status */
+  --green:        #12B76A;
+  --green-light:  #ECFDF3;
+  --danger:       #F04438;
+  --danger-light: #FEF3F2;
+  --amber:        #F79009;
+  --amber-light:  #FFFAEB;
+  --star:         #F59E0B;
+  --star-half:    #FCD34D;
+
+  /* Owner accent — deep violet */
+  --violet:       #7C3AED;
+  --violet-light: #F5F3FF;
+  --violet-border:#DDD6FE;
+
+  /* Geometry */
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+  --shadow-xs:  0 1px 2px rgba(16,24,40,.05);
+  --shadow-sm:  0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md:  0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06);
+  --shadow-lg:  0 12px 40px -4px rgba(16,24,40,.12), 0 4px 12px -2px rgba(16,24,40,.08);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════════════════════════════════
+   HEADER
+══════════════════════════════════════ */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow-xs);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: inherit;
+}
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--ink);
+  line-height: 1;
+}
+.logo-text em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  background: var(--surface-3);
+  padding: 3px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.tab {
+  padding: 6px 16px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: .8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+  white-space: nowrap;
+}
+.tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-xs);
+  font-weight: 600;
+}
+.tab:hover:not(.active) { color: var(--ink-3); }
+
+.ghost-trigger {
+  background: none;
+  border: none;
+  width: 22px;
+  height: 22px;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   VIEWS
+══════════════════════════════════════ */
+#viewNajomnik { display: block; }
+#viewVlastnik { display: none; }
+
+/* ══════════════════════════════════════
+   TENANT VIEW — multi-step form
+══════════════════════════════════════ */
+.tenant-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.tenant-header {
+  margin-bottom: 32px;
+}
+.tenant-header .eyebrow {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.tenant-header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.875rem;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.tenant-header p {
+  font-size: .9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+/* Progress stepper */
+.progress-wrap { margin-bottom: 36px; }
+
+.progress-steps {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+}
+
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.pstep {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.pstep-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--subtle);
+  transition: all .2s;
+}
+.pstep.done .pstep-dot {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.pstep.done .pstep-dot::before { content: '✓'; }
+.pstep.done .pstep-dot span { display: none; }
+.pstep.active .pstep-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--accent-light);
+}
+.plabel {
+  font-size: .69rem;
+  font-weight: 500;
+  color: var(--subtle);
+  text-align: center;
+  white-space: nowrap;
+}
+.pstep.done .plabel { color: var(--green); }
+.pstep.active .plabel { color: var(--accent); font-weight: 600; }
+
+/* Step pages */
+.step-page { display: none; flex-direction: column; gap: 20px; }
+.step-page.active { display: flex; }
+
+/* ══════════════════════════════════════
+   OWNER VIEW — sidebar + content
+══════════════════════════════════════ */
+.owner-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-head {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sidebar-head-top h2 {
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--subtle);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sidebar-count-badge {
+  background: var(--surface-3);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+}
+
+.sidebar-new-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.sidebar-new-btn:hover { background: var(--accent-hover); }
+.sidebar-new-btn svg { width: 14px; height: 14px; }
+
+.clist {
+  flex: 1;
+  overflow-y: auto;
+}
+.clist::-webkit-scrollbar { width: 3px; }
+.clist::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+.ccard {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .1s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+.ccard:hover { background: var(--surface-2); }
+.ccard.active {
+  background: var(--accent-light);
+  border-bottom-color: var(--accent-mid);
+}
+.ccard.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.cavatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: .03em;
+}
+
+/* Avatar color variety by initials hash */
+.cavatar[data-hue="1"] { background: #3B5BDB; }
+.cavatar[data-hue="2"] { background: #1C9E77; }
+.cavatar[data-hue="3"] { background: #7C3AED; }
+.cavatar[data-hue="4"] { background: #D6534A; }
+.cavatar[data-hue="5"] { background: #C17B28; }
+
+.cinfo { flex: 1; min-width: 0; }
+.cname {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ccard.active .cname { color: var(--accent); }
+.cmeta {
+  font-size: .7rem;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crating {
+  font-size: .7rem;
+  color: var(--star);
+  font-weight: 600;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.empty-list {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--subtle);
+  font-size: .82rem;
+  line-height: 1.7;
+}
+.empty-list-icon { font-size: 2rem; margin-bottom: 8px; }
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+}
+.sidebar-footer .btn { flex: 1; justify-content: center; }
+
+/* ══════════════════════════════════════
+   OWNER MAIN CONTENT
+══════════════════════════════════════ */
+.owner-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.owner-welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  gap: 12px;
+  padding: 60px 40px;
+}
+.owner-welcome-icon {
+  width: 56px;
+  height: 56px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+.owner-welcome h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem;
+  color: var(--ink-3);
+}
+.owner-welcome p {
+  font-size: .85rem;
+  max-width: 260px;
+  line-height: 1.65;
+}
+
+/* Panel header */
+.panel-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-xs);
+}
+.panel-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+.panel-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ══════════════════════════════════════
+   SECTIONS / CARDS
+══════════════════════════════════════ */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.section-title {
+  padding: 11px 20px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--subtle);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .title-icon {
+  font-size: .8rem;
+  opacity: .8;
+}
+
+.section-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section.owner-only {
+  border-color: var(--violet-border);
+  box-shadow: 0 0 0 1px var(--violet-border), var(--shadow-xs);
+}
+.section.owner-only .section-title {
+  background: var(--violet-light);
+  color: var(--violet);
+  border-bottom-color: var(--violet-border);
+}
+
+/* ══════════════════════════════════════
+   GRIDS
+══════════════════════════════════════ */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════
+   FIELDS
+══════════════════════════════════════ */
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+.field label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.field label .req {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+input[type=text],
+input[type=date],
+input[type=email],
+input[type=tel],
+input[type=url],
+input[type=password],
+textarea,
+select {
+  font-family: inherit;
+  font-size: .875rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+  line-height: 1.4;
+}
+
+input::placeholder,
+textarea::placeholder { color: var(--subtle); }
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59,91,219,.14);
+}
+
+input:hover:not(:focus),
+textarea:hover:not(:focus),
+select:hover:not(:focus) {
+  border-color: var(--ink-3);
+}
+
+textarea { resize: vertical; min-height: 88px; }
+
+.hint {
+  font-size: .72rem;
+  color: var(--subtle);
+  line-height: 1.45;
+}
+
+/* ══════════════════════════════════════
+   TOGGLE GROUPS
+══════════════════════════════════════ */
+.tgroup { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.tgroup label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  transition: all .15s;
+  user-select: none;
+  background: var(--surface);
+}
+
+.tgroup label:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.tgroup input[type=radio] { display: none; }
+.tgroup label.sel {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(59,91,219,.3);
+}
+
+.subfields {
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+.subfields.on { display: flex; }
+
+/* ══════════════════════════════════════
+   STARS
+══════════════════════════════════════ */
+.stars-row { display: flex; gap: 4px; align-items: center; }
+.sbtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--border-2);
+  padding: 2px;
+  transition: color .1s, transform .1s;
+}
+.sbtn:hover { transform: scale(1.18); }
+.sbtn.full { color: var(--star); }
+.sbtn.half { color: var(--star-half); }
+.slabel { font-size: .95rem; font-weight: 700; min-width: 34px; color: var(--ink); }
+.shint { font-size: .7rem; color: var(--subtle); }
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.98); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 1px 2px rgba(59,91,219,.2);
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 2px 6px rgba(59,91,219,.3); }
+
+.btn-outline {
+  background: var(--surface);
+  border-color: var(--border-2);
+  color: var(--ink-3);
+  box-shadow: var(--shadow-xs);
+}
+.btn-outline:hover { background: var(--surface-2); border-color: var(--ink-3); color: var(--ink); }
+
+.btn-success {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+  box-shadow: 0 1px 2px rgba(18,183,106,.2);
+}
+.btn-success:hover { opacity: .9; }
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: #FECDCA;
+}
+.btn-danger:hover { background: var(--danger-light); border-color: var(--danger); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn-ghost:hover { background: var(--surface-3); color: var(--ink); }
+
+.btn-sm { padding: 5px 11px; font-size: .75rem; }
+.btn-lg { padding: 11px 22px; font-size: .9rem; }
+
+/* ══════════════════════════════════════
+   FORM NAV
+══════════════════════════════════════ */
+.form-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+/* ══════════════════════════════════════
+   DIVIDER
+══════════════════════════════════════ */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
+/* ══════════════════════════════════════
+   CHAR COUNT
+══════════════════════════════════════ */
+.char-row {
+  display: flex;
+  justify-content: flex-end;
+  font-size: .68rem;
+  color: var(--subtle);
+  margin-top: 3px;
+}
+
+/* ══════════════════════════════════════
+   SUCCESS SCREEN
+══════════════════════════════════════ */
+.success-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 80px 20px;
+  min-height: 60vh;
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--green-light);
+  border: 2px solid #A6F4C5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.success-screen h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.75rem;
+  color: var(--ink);
+}
+.success-screen p {
+  color: var(--muted);
+  font-size: .9rem;
+  max-width: 340px;
+  line-height: 1.65;
+}
+
+/* ══════════════════════════════════════
+   MODALS
+══════════════════════════════════════ */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 22, 35, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  backdrop-filter: blur(3px);
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  width: 380px;
+  max-width: 92vw;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(16px) scale(.98);
+  transition: transform .22s, opacity .2s;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid var(--border);
+}
+.modal-bg.open .modal { transform: translateY(0) scale(1); }
+
+.modal h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.merr {
+  color: var(--danger);
+  font-size: .78rem;
+  display: none;
+  background: var(--danger-light);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #FECDCA;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--ink-2);
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: var(--radius);
+  font-size: .82rem;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+  z-index: 999;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255,255,255,.08);
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ══════════════════════════════════════
+   FB LINK
+══════════════════════════════════════ */
+.fb-link {
+  font-size: .77rem;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 4px;
+  display: none;
+  word-break: break-all;
+}
+.fb-link:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════
+   STEP INDICATOR LABEL
+══════════════════════════════════════ */
+.step-label {
+  font-size: .75rem;
+  color: var(--subtle);
+  font-weight: 500;
+}
+.step-label strong { color: var(--ink-3); }
+
+/* Scrollbar owner main */
+.owner-main::-webkit-scrollbar { width: 5px; }
+.owner-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">N</div>
+    <div class="logo-text">Nájom<em>App</em></div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" id="tabNajomnik" onclick="switchView('najomnik')">Záujemca</button>
+    <!-- Ghost: invisible, no text, no title — triple-click to open owner view -->
+    <button class="ghost-trigger" id="ghostBtn" onclick="ghostClick()"></button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════
+     ZÁUJEMCA VIEW
+═══════════════════════════════════════════════════════════ -->
+<div id="viewNajomnik">
+  <div class="tenant-wrap">
+
+    <!-- Success -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✅</div>
+      <h2>Ďakujeme!</h2>
+      <p>Vaše údaje sme prijali. Ozveme sa vám čo najskôr.</p>
+      <button class="btn btn-primary btn-lg" onclick="resetTenantForm()">Vyplniť nový formulár</button>
+    </div>
+
+    <!-- Form wrap -->
+    <div id="tenantFormWrap">
+
+      <div class="tenant-header">
+        <div class="eyebrow">Prenájom bytu</div>
+        <h1>Formulár záujemcu</h1>
+        <p>Vyplňte prosím všetky polia čo najpresnejšie — pomôže nám to lepšie posúdiť vašu žiadosť.</p>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-steps">
+          <div class="pstep active" id="ps0">
+            <div class="pstep-dot"><span>1</span></div>
+            <div class="plabel">Osobné</div>
+          </div>
+          <div class="pstep" id="ps1">
+            <div class="pstep-dot"><span>2</span></div>
+            <div class="plabel">Pobyt</div>
+          </div>
+          <div class="pstep" id="ps2">
+            <div class="pstep-dot"><span>3</span></div>
+            <div class="plabel">Štúdium &amp; Práca</div>
+          </div>
+          <div class="pstep" id="ps3">
+            <div class="pstep-dot"><span>4</span></div>
+            <div class="plabel">Byt</div>
+          </div>
+          <div class="pstep" id="ps4">
+            <div class="pstep-dot"><span>5</span></div>
+            <div class="plabel">Situácia</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 0 -->
+      <div class="step-page active" id="step0">
+        <div class="section">
+          <div class="section-title"><span class="title-icon">👤</span>Osobné údaje</div>
+          <div class="section-body">
+            <div class="g3">
+              <div class="field"><label>Meno <span class="req">*</span></label><input type="text" id="t_firstName" placeholder="Ján" oninput="autoSave()"></div>
+              <div class="field"><label>Priezvisko <span class="req">*</span></label><input type="text" id="t_lastName" placeholder="Novák" oninput="autoSave()"></div>
+              <div class="field"><label>Dátum narodenia</label><input type="text" id="t_dob" placeholder="dd/mm/rrrr" oninput="autoSave()"></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>Rodné číslo</label><input type="text" id="t_rodneCislo" placeholder="RRMMDD/XXXX" oninput="autoSave()"></div>
+              <div class="field"><label>Číslo OP (občiansky preukaz)</label><input type="text" id="t_opCislo" placeholder="napr. EA 123456" oninput="autoSave()"></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>Číslo pasu</label><input type="text" id="t_passCislo" placeholder="napr. AA1234567" oninput="autoSave()"></div>
+              <div class="field"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="g3">
+              <div class="field"><label>Telefón <span class="req">*</span></label><input type="tel" id="t_phone" placeholder="+421 9xx xxx xxx" oninput="autoSave()"></div>
+              <div class="field"><label>E-mail <span class="req">*</span></label><input type="email" id="t_email" placeholder="jan@email.sk" oninput="autoSave()"></div>
+              <div class="field"><label>Ďalší kontakt</label><input type="text" id="t_contact" placeholder="napr. Telegram, WhatsApp" oninput="autoSave()"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <span class="step-label">Krok <strong>1</strong> z 5</span>
+          <button class="btn btn-primary" onclick="goStep(1)">Ďalej →</button>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step-page" id="step1">
+        <div class="section">
+          <div class="section-title"><span class="title-icon">📍</span>Pôvod a súčasný pobyt</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Odkiaľ ste?</label>
+              <input type="text" id="t_whereFrom" placeholder="napr. Slovensko, Košice" oninput="autoSave()">
+              <div class="hint">Uveďte krajinu a mesto</div>
+            </div>
+            <div class="field">
+              <label>Ako dlho pôsobíte v Bratislave?</label>
+              <input type="text" id="t_timeInBA" placeholder="napr. 2 roky, od septembra 2024…" oninput="autoSave()">
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button class="btn btn-outline" onclick="goStep(0)">← Späť</button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="step-label">Krok <strong>2</strong> z 5</span>
+            <button class="btn btn-primary" onclick="goStep(2)">Ďalej →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-page" id="step2">
+        <div class="section">
+          <div class="section-title"><span class="title-icon">🎓</span>Štúdium</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Ste študent/ka?</label>
+              <div class="tgroup" id="tg_student">
+                <label onclick="tsel(this,'tg_student');tsub('tsub_student',['Áno','Externé'])">
+                  <input type="radio" name="t_student" value="Áno"><span>Áno, denné štúdium</span></label>
+                <label onclick="tsel(this,'tg_student');tsub('tsub_student',['Áno','Externé'])">
+                  <input type="radio" name="t_student" value="Externé"><span>Externé štúdium</span></label>
+                <label onclick="tsel(this,'tg_student');tsub('tsub_student',['Áno','Externé'])">
+                  <input type="radio" name="t_student" value="Nie"><span>Nie</span></label>
+              </div>
+              <div class="subfields" id="tsub_student">
+                <div class="field"><label>Kde študujete?</label>
+                  <input type="text" id="t_studyWhere" placeholder="napr. UK Bratislava — právo" oninput="autoSave()"></div>
+                <div class="field"><label>Rok / ročník</label>
+                  <input type="text" id="t_studyYear" placeholder="napr. 3. ročník, Bc." oninput="autoSave()"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="title-icon">💼</span>Zamestnanie</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Pracujete?</label>
+              <div class="tgroup" id="tg_works">
+                <label onclick="tsel(this,'tg_works');tsub('tsub_works',['Áno','SZČO'])">
+                  <input type="radio" name="t_works" value="Áno"><span>Áno, TPP</span></label>
+                <label onclick="tsel(this,'tg_works');tsub('tsub_works',['Áno','SZČO'])">
+                  <input type="radio" name="t_works" value="SZČO"><span>SZČO / živnosť</span></label>
+                <label onclick="tsel(this,'tg_works');tsub('tsub_works',['Áno','SZČO'])">
+                  <input type="radio" name="t_works" value="Brigáda"><span>Brigáda</span></label>
+                <label onclick="tsel(this,'tg_works');tsub('tsub_works',['Áno','SZČO'])">
+                  <input type="radio" name="t_works" value="Nie"><span>Momentálne nie</span></label>
+              </div>
+              <div class="subfields" id="tsub_works">
+                <div class="g2">
+                  <div class="field"><label>Kde / u koho pracujete?</label>
+                    <input type="text" id="t_workWhere" placeholder="firma, pozícia" oninput="autoSave()"></div>
+                  <div class="field"><label>Ako dlho?</label>
+                    <input type="text" id="t_workHowLong" placeholder="napr. 2 roky" oninput="autoSave()"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-nav">
+          <button class="btn btn-outline" onclick="goStep(1)">← Späť</button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="step-label">Krok <strong>3</strong> z 5</span>
+            <button class="btn btn-primary" onclick="goStep(3)">Ďalej →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-page" id="step3">
+        <div class="section">
+          <div class="section-title"><span class="title-icon">🏠</span>Preferencie k bytu</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Čo je pre vás v byte nevyhnutné?</label>
+              <textarea id="t_mustHave" placeholder="Napr. vlastná kúpeľňa, rýchly internet, tichá lokalita, povolenie mať zviera…" oninput="autoSave();cc(this,'cc_mh',300)"></textarea>
+              <div class="char-row"><span id="cc_mh">0</span> / 300</div>
+            </div>
+            <div class="field">
+              <label>Čo by ste uvítali, ale nie je podmienkou?</label>
+              <textarea id="t_niceToHave" placeholder="Napr. balkón, parkovacie miesto, práčka v byte, bezbariérový prístup…" oninput="autoSave();cc(this,'cc_nth',300)"></textarea>
+              <div class="char-row"><span id="cc_nth">0</span> / 300</div>
+            </div>
+            <div class="field">
+              <label>Čo by ste chceli mať (sen / ideál)?</label>
+              <textarea id="t_wishList" placeholder="Napr. terasa, klimatizácia, smart home, pohľad na mesto…" oninput="autoSave();cc(this,'cc_wl',300)"></textarea>
+              <div class="char-row"><span id="cc_wl">0</span> / 300</div>
+            </div>
+            <div class="field">
+              <label>Čo sa vám páči na ponúkanom byte?</label>
+              <textarea id="t_flatLikes" placeholder="napr. lokalita, súkromie, vybavenie, svetlosť, dispozícia…" oninput="autoSave();cc(this,'cc_fl',300)"></textarea>
+              <div class="char-row"><span id="cc_fl">0</span> / 300</div>
+            </div>
+            <div class="divider"></div>
+            <div class="field">
+              <label>Kedy by ste chceli nasťahovať?</label>
+              <input type="text" id="t_moveIn" placeholder="napr. od 1. septembra, ihneď…" oninput="autoSave()">
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button class="btn btn-outline" onclick="goStep(2)">← Späť</button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="step-label">Krok <strong>4</strong> z 5</span>
+            <button class="btn btn-primary" onclick="goStep(4)">Ďalej →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step-page" id="step4">
+        <div class="section">
+          <div class="section-title"><span class="title-icon">📋</span>Aktuálna životná situácia</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Opíšte vašu aktuálnu bytovú situáciu</label>
+              <textarea id="t_currentSituation" placeholder="Napr. bývam na internáte, zdieľam byt s 2 spolubývajúcimi, bývam u rodičov. Prečo hľadáte nový byt / prečo sa sťahujete…" style="min-height:140px" oninput="autoSave();cc(this,'cc_cs',800)"></textarea>
+              <div class="char-row"><span id="cc_cs">0</span> / 800</div>
+            </div>
+            <div class="field">
+              <label>Čokoľvek ďalšie, čo by ste chceli prenajímateľovi povedať</label>
+              <textarea id="t_additionalInfo" placeholder="Napr. mám mačku, pracujem z domu, som nekuriaci, som tichý nájomca…" oninput="autoSave();cc(this,'cc_ai',500)"></textarea>
+              <div class="char-row"><span id="cc_ai">0</span> / 500</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button class="btn btn-outline" onclick="goStep(3)">← Späť</button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="step-label">Krok <strong>5</strong> z 5</span>
+            <button class="btn btn-success btn-lg" onclick="submitTenantForm()">Odoslať žiadosť ✓</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tenantFormWrap -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     VLASTNÍK VIEW
+═══════════════════════════════════════════════════════════ -->
+<div id="viewVlastnik">
+  <div class="owner-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-head-top">
+          <h2>Záujemcovia</h2>
+          <span class="sidebar-count-badge" id="ownerCount">0</span>
+        </div>
+        <button class="sidebar-new-btn" onclick="ownerNew()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+          </svg>
+          Nový záujemca
+        </button>
+      </div>
+
+      <div class="clist" id="ownerList">
+        <div class="empty-list">
+          <div class="empty-list-icon">📋</div>
+          <div>Žiadni záujemcovia.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-outline btn-sm" onclick="exportData()">↓ Export</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('importModal').classList.add('open')">↑ Import</button>
+        <button class="btn btn-sm" style="background:transparent;border:1.5px solid #FECDCA;color:var(--danger);font-size:.75rem;padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-weight:600" onclick="lockOwner()">🔒</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="owner-main">
+
+      <div class="owner-welcome" id="ownerWelcome">
+        <div class="owner-welcome-icon">🏠</div>
+        <h2>Vyberte záujemcu</h2>
+        <p>Vyberte záujemcu zo zoznamu vľavo alebo vytvorte nový záznam.</p>
+      </div>
+
+      <div id="ownerFormWrap" style="display:none;flex-direction:column;gap:20px">
+
+        <div class="panel-hdr">
+          <div class="panel-title" id="ownerFormTitle">Nový záujemca</div>
+          <div class="panel-actions">
+            <button class="btn btn-danger btn-sm" id="ownerDeleteBtn" style="display:none" onclick="ownerDelete()">Vymazať</button>
+            <button class="btn btn-success" onclick="ownerSave()">💾 Uložiť</button>
+          </div>
+        </div>
+
+        <!-- Osobné -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">👤</span>Osobné údaje</div>
+          <div class="section-body">
+            <div class="g3">
+              <div class="field"><label>Meno <span class="req">*</span></label><input type="text" id="o_firstName" placeholder="Ján"></div>
+              <div class="field"><label>Priezvisko <span class="req">*</span></label><input type="text" id="o_lastName" placeholder="Novák"></div>
+              <div class="field"><label>Dátum narodenia</label><input type="text" id="o_dob" placeholder="dd/mm/rrrr"></div>
+            </div>
+            <div class="g4">
+              <div class="field"><label>Rodné číslo</label><input type="text" id="o_rodneCislo" placeholder="RRMMDD/XXXX"></div>
+              <div class="field"><label>Číslo OP</label><input type="text" id="o_opCislo" placeholder="EA 123456"></div>
+              <div class="field"><label>Číslo pasu</label><input type="text" id="o_passCislo" placeholder="AA1234567"></div>
+              <div class="field"></div>
+            </div>
+            <div class="g3">
+              <div class="field"><label>Telefón</label><input type="tel" id="o_phone" placeholder="+421 9xx xxx xxx"></div>
+              <div class="field"><label>E-mail</label><input type="email" id="o_email" placeholder="jan@email.sk"></div>
+              <div class="field"><label>Ďalší kontakt</label><input type="text" id="o_contact" placeholder="Telegram, WhatsApp…"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pôvod -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">📍</span>Pôvod a pobyt</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Odkiaľ pochádza?</label>
+              <input type="text" id="o_whereFrom" placeholder="napr. Slovensko, Košice">
+              <div class="hint">Krajina a mesto / región pôvodu</div>
+            </div>
+            <div class="field"><label>Ako dlho v Bratislave?</label>
+              <input type="text" id="o_timeInBA" placeholder="napr. 2 roky"></div>
+          </div>
+        </div>
+
+        <!-- Štúdium -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">🎓</span>Štúdium</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Ste študent/ka?</label>
+              <div class="tgroup" id="og_student">
+                <label onclick="tsel(this,'og_student');tsub('osub_student',['Áno','Externé'])">
+                  <input type="radio" name="o_student" value="Áno"><span>Áno, denné</span></label>
+                <label onclick="tsel(this,'og_student');tsub('osub_student',['Áno','Externé'])">
+                  <input type="radio" name="o_student" value="Externé"><span>Externé</span></label>
+                <label onclick="tsel(this,'og_student');tsub('osub_student',['Áno','Externé'])">
+                  <input type="radio" name="o_student" value="Nie"><span>Nie</span></label>
+              </div>
+              <div class="subfields" id="osub_student">
+                <div class="g2">
+                  <div class="field"><label>Kde študuje?</label><input type="text" id="o_studyWhere" placeholder="UK Bratislava…"></div>
+                  <div class="field"><label>Rok / ročník</label><input type="text" id="o_studyYear" placeholder="3. ročník, Bc."></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zamestnanie -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">💼</span>Zamestnanie</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Pracuje?</label>
+              <div class="tgroup" id="og_works">
+                <label onclick="tsel(this,'og_works');tsub('osub_works',['Áno','SZČO'])">
+                  <input type="radio" name="o_works" value="Áno"><span>Áno, TPP</span></label>
+                <label onclick="tsel(this,'og_works');tsub('osub_works',['Áno','SZČO'])">
+                  <input type="radio" name="o_works" value="SZČO"><span>SZČO</span></label>
+                <label onclick="tsel(this,'og_works');tsub('osub_works',['Áno','SZČO'])">
+                  <input type="radio" name="o_works" value="Brigáda"><span>Brigáda</span></label>
+                <label onclick="tsel(this,'og_works');tsub('osub_works',['Áno','SZČO'])">
+                  <input type="radio" name="o_works" value="Nie"><span>Nie</span></label>
+              </div>
+              <div class="subfields" id="osub_works">
+                <div class="g2">
+                  <div class="field"><label>Kde pracuje?</label><input type="text" id="o_workWhere" placeholder="firma, pozícia"></div>
+                  <div class="field"><label>Ako dlho?</label><input type="text" id="o_workHowLong" placeholder="napr. 2 roky"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferencie -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">🏠</span>Preferencie k bytu</div>
+          <div class="section-body">
+            <div class="field"><label>Čo je nevyhnutné?</label>
+              <textarea id="o_mustHave" placeholder="Čo záujemca vyžaduje…"></textarea></div>
+            <div class="field"><label>Čo by uvítal?</label>
+              <textarea id="o_niceToHave" placeholder="Čo by uvítal…"></textarea></div>
+            <div class="field"><label>Sen / ideál</label>
+              <textarea id="o_wishList" placeholder="Čo by si prial…"></textarea></div>
+            <div class="field"><label>Čo sa mu páči na ponúkanom byte?</label>
+              <textarea id="o_flatLikes" placeholder="napr. lokalita, súkromie, vybavenie, svetlosť…"></textarea></div>
+            <div class="field"><label>Nasťahovanie</label><input type="text" id="o_moveIn" placeholder="od 1. septembra"></div>
+          </div>
+        </div>
+
+        <!-- Situácia -->
+        <div class="section">
+          <div class="section-title"><span class="title-icon">📋</span>Aktuálna situácia</div>
+          <div class="section-body">
+            <div class="field"><label>Opíšte aktuálnu bytovú situáciu</label>
+              <textarea id="o_currentSituation" placeholder="Kde momentálne býva, prečo sa sťahuje…" style="min-height:110px"></textarea></div>
+            <div class="field"><label>Doplňujúce informácie</label>
+              <textarea id="o_additionalInfo" placeholder="Čokoľvek ďalšie…"></textarea></div>
+          </div>
+        </div>
+
+        <!-- Interné -->
+        <div class="section owner-only">
+          <div class="section-title">🔐 Interné — vlastník</div>
+          <div class="section-body">
+            <div class="field">
+              <label>Facebook profil</label>
+              <input type="url" id="o_fbUrl" placeholder="https://facebook.com/…" oninput="updateFbLink()">
+              <a class="fb-link" id="o_fbLink" href="#" target="_blank" rel="noopener"></a>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <div class="field" style="margin-bottom:8px"><label>Hodnotenie</label></div>
+              <div class="stars-row" id="starsRow"></div>
+              <div class="shint" style="margin-top:6px">Ľavá polovica hviezdy = 0.5 bodu</div>
+            </div>
+            <div class="divider"></div>
+            <div class="field"><label>Moje poznámky</label>
+              <textarea id="o_notes" placeholder="Dojmy z rozhovoru, výhrady, otázky…" style="min-height:110px"></textarea></div>
+          </div>
+        </div>
+
+      </div><!-- /ownerFormWrap -->
+    </div><!-- /owner-main -->
+  </div>
+</div>
+
+<!-- Password modal -->
+<div class="modal-bg" id="pwModal">
+  <div class="modal">
+    <h3 id="pwTitle">Prístup</h3>
+    <div class="field"><input type="password" id="pwInput" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')pwOk()"></div>
+    <div class="merr" id="pwErr">Nesprávne heslo.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="pwCancel()">Zrušiť</button>
+      <button class="btn btn-primary" onclick="pwOk()">Potvrdiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change-password modal -->
+<div class="modal-bg" id="chpwModal">
+  <div class="modal">
+    <h3>Zmena hesla</h3>
+    <div class="field"><label>Aktuálne heslo</label><input type="password" id="oldPw"></div>
+    <div class="field"><label>Nové heslo</label><input type="password" id="newPw1"></div>
+    <div class="field"><label>Nové heslo znova</label><input type="password" id="newPw2"></div>
+    <div class="merr" id="chpwErr"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeChpw()">Zrušiť</button>
+      <button class="btn btn-primary" onclick="doChangePw()">Zmeniť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <h3>Import JSON</h3>
+    <div class="field">
+      <label>Vybrať súbor zo zariadenia</label>
+      <input type="file" id="importFile" accept=".json,application/json"
+        style="font-family:inherit;font-size:.85rem;padding:6px 0;width:100%;cursor:pointer"
+        onchange="importFileSelected(this)">
+    </div>
+    <div class="field" id="importTextWrap" style="display:none">
+      <label>Obsah JSON</label>
+      <textarea id="importText" style="min-height:110px;font-size:.73rem;font-family:monospace" placeholder='[{"id":"..."}]'></textarea>
+    </div>
+    <div class="merr" id="importErr"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('importModal').classList.remove('open');document.getElementById('importFile').value='';document.getElementById('importTextWrap').style.display='none';">Zrušiť</button>
+      <button class="btn btn-primary" onclick="doImport()">Importovať</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// Storage
+// ════════════════════════════════════════════
+const LS_KEY = 'najomnici_v4';
+let candidates = [];
+
+function saveAll() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(candidates)); }
+  catch(e) { toast('⚠️ Chyba uloženia'); }
+}
+function loadAll() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }
+  catch(e) { return []; }
+}
+
+// ════════════════════════════════════════════
+// Auto-save draft for tenant form
+// ════════════════════════════════════════════
+const DRAFT_KEY = 'najom_draft';
+function autoSave() {
+  const d = getTenantData();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+}
+function loadDraft() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY)||'null'); }
+  catch(e) { return null; }
+}
+function clearDraft() { localStorage.removeItem(DRAFT_KEY); }
+
+// ════════════════════════════════════════════
+// Password
+// ════════════════════════════════════════════
+const PW_KEY = 'naj_pw_v3';
+const h = s => btoa(encodeURIComponent(s));
+const getPwHash = () => localStorage.getItem(PW_KEY) || h('admin123');
+const checkPw = s => h(s) === getPwHash();
+
+let pwCb = null;
+function openPw(title, cb) {
+  pwCb = cb;
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwErr').style.display = 'none';
+  document.getElementById('pwTitle').textContent = title || 'Prístup';
+  document.getElementById('pwModal').classList.add('open');
+  setTimeout(() => document.getElementById('pwInput').focus(), 80);
+}
+function pwCancel() { document.getElementById('pwModal').classList.remove('open'); pwCb = null; }
+function pwOk() {
+  if (checkPw(document.getElementById('pwInput').value)) {
+    document.getElementById('pwModal').classList.remove('open');
+    if (pwCb) { pwCb(); pwCb = null; }
+  } else {
+    document.getElementById('pwErr').style.display = 'block';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+}
+
+function closeChpw() { document.getElementById('chpwModal').classList.remove('open'); }
+function doChangePw() {
+  const err = document.getElementById('chpwErr');
+  const old = document.getElementById('oldPw').value;
+  const n1  = document.getElementById('newPw1').value;
+  const n2  = document.getElementById('newPw2').value;
+  err.style.display = 'none';
+  if (!checkPw(old)) { err.textContent='Aktuálne heslo je nesprávne.'; err.style.display='block'; return; }
+  if (n1.length < 4) { err.textContent='Minimálne 4 znaky.'; err.style.display='block'; return; }
+  if (n1 !== n2)     { err.textContent='Heslá sa nezhodujú.'; err.style.display='block'; return; }
+  localStorage.setItem(PW_KEY, h(n1));
+  closeChpw();
+  toast('✅ Heslo zmenené');
+}
+
+// ════════════════════════════════════════════
+// Ghost button — triple-click within 2s
+// ════════════════════════════════════════════
+let ghostN = 0, ghostT = null;
+let ownerUnlocked = false;
+
+function ghostClick() {
+  ghostN++;
+  clearTimeout(ghostT);
+  ghostT = setTimeout(() => ghostN = 0, 2000);
+  if (ghostN >= 3) {
+    ghostN = 0; clearTimeout(ghostT);
+    if (ownerUnlocked) {
+      ['oldPw','newPw1','newPw2'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('chpwErr').style.display='none';
+      document.getElementById('chpwModal').classList.add('open');
+    } else {
+      openPw('Prístup vlastníka', () => {
+        ownerUnlocked = true;
+        switchView('vlastnik');
+      });
+    }
+  }
+}
+
+function lockOwner() {
+  ownerUnlocked = false;
+  currentOwnerId = null;
+  switchView('najomnik');
+  toast('🔒 Zamknuté');
+}
+
+// ════════════════════════════════════════════
+// View switching
+// ════════════════════════════════════════════
+function switchView(v) {
+  document.getElementById('viewNajomnik').style.display = v === 'najomnik' ? 'block' : 'none';
+  document.getElementById('viewVlastnik').style.display = v === 'vlastnik' ? 'block' : 'none';
+  document.getElementById('tabNajomnik').classList.toggle('active', v === 'najomnik');
+  if (v === 'vlastnik') { renderOwnerList(); buildStars(); }
+}
+
+// ════════════════════════════════════════════
+// Tenant multi-step form
+// ════════════════════════════════════════════
+let currentStep = 0;
+const STEPS = 5;
+
+function goStep(n) {
+  if (n < 0 || n >= STEPS) return;
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('step'+n).classList.add('active');
+  for (let i=0;i<STEPS;i++) {
+    const ps = document.getElementById('ps'+i);
+    ps.classList.remove('active','done');
+    if (i < n) ps.classList.add('done');
+    else if (i === n) ps.classList.add('active');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function cc(el, countId, max) {
+  const n = el.value.length;
+  document.getElementById(countId).textContent = n;
+  document.getElementById(countId).style.color = n > max * .9 ? 'var(--danger)' : '';
+}
+
+function getTenantData() {
+  const g = id => (document.getElementById(id)||{}).value||'';
+  const radio = n => { const r=document.querySelector(`input[name=${n}]:checked`); return r?r.value:''; };
+  return {
+    firstName:g('t_firstName'), lastName:g('t_lastName'), dob:g('t_dob'),
+    rodneCislo:g('t_rodneCislo'), opCislo:g('t_opCislo'), passCislo:g('t_passCislo'),
+    phone:g('t_phone'), email:g('t_email'), contact:g('t_contact'),
+    whereFrom:g('t_whereFrom'), timeInBA:g('t_timeInBA'),
+    student:radio('t_student'), studyWhere:g('t_studyWhere'), studyYear:g('t_studyYear'),
+    works:radio('t_works'), workWhere:g('t_workWhere'), workHowLong:g('t_workHowLong'),
+    mustHave:g('t_mustHave'), niceToHave:g('t_niceToHave'), wishList:g('t_wishList'),
+    flatLikes:g('t_flatLikes'), moveIn:g('t_moveIn'),
+    currentSituation:g('t_currentSituation'), additionalInfo:g('t_additionalInfo')
+  };
+}
+
+function submitTenantForm() {
+  const d = getTenantData();
+  if (!d.firstName && !d.lastName) { toast('⚠️ Zadajte aspoň meno.'); return; }
+  const rec = { ...d, id: Date.now().toString(), savedAt: new Date().toISOString(),
+    rating:0, fbUrl:'', notes:'' };
+  candidates.unshift(rec);
+  saveAll();
+  clearDraft();
+  document.getElementById('tenantFormWrap').style.display = 'none';
+  document.getElementById('successScreen').style.display = 'flex';
+  toast('✅ Žiadosť odoslaná');
+}
+
+function resetTenantForm() {
+  document.getElementById('tenantFormWrap').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  clearTenantForm();
+  goStep(0);
+}
+
+function clearTenantForm() {
+  ['t_firstName','t_lastName','t_dob','t_rodneCislo','t_opCislo','t_passCislo',
+   't_phone','t_email','t_contact','t_whereFrom','t_timeInBA',
+   't_studyWhere','t_studyYear','t_workWhere','t_workHowLong',
+   't_mustHave','t_niceToHave','t_wishList','t_flatLikes','t_moveIn',
+   't_currentSituation','t_additionalInfo'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.querySelectorAll('input[name^=t_]').forEach(r=>r.checked=false);
+  document.querySelectorAll('#viewNajomnik .tgroup label').forEach(l=>l.classList.remove('sel'));
+  document.querySelectorAll('#viewNajomnik .subfields').forEach(s=>s.classList.remove('on'));
+}
+
+// ════════════════════════════════════════════
+// Owner list
+// ════════════════════════════════════════════
+let currentOwnerId = null;
+let currentRating  = 0;
+
+// Avatar color hash
+function avatarHue(name) {
+  let n = 0;
+  for (let c of name) n += c.charCodeAt(0);
+  return (n % 5) + 1;
+}
+
+function renderOwnerList() {
+  const list = document.getElementById('ownerList');
+  document.getElementById('ownerCount').textContent = candidates.length;
+  if (!candidates.length) {
+    list.innerHTML = '<div class="empty-list"><div class="empty-list-icon">📋</div><div>Zatiaľ žiadni záujemcovia.</div></div>';
+    return;
+  }
+  const sorted = [...candidates].sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||''));
+  list.innerHTML = sorted.map(c => {
+    const ini = ((c.firstName||'?')[0]+(c.lastName||'?')[0]).toUpperCase();
+    const hue = avatarHue(ini);
+    // BUG FIX: use whereFrom (not country which doesn't exist in data model)
+    const origin = c.whereFrom || '—';
+    const ratingHtml = c.rating > 0
+      ? `<div class="crating">★ ${c.rating.toFixed(1)}</div>`
+      : '';
+    return `<div class="ccard${c.id===currentOwnerId?' active':''}" onclick="ownerLoad('${c.id}')">
+      <div class="cavatar" data-hue="${hue}">${esc(ini)}</div>
+      <div class="cinfo">
+        <div class="cname">${esc((c.firstName||'')+' '+(c.lastName||''))}</div>
+        <div class="cmeta">${esc(origin)}</div>
+      </div>
+      ${ratingHtml}
+    </div>`;
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// ════════════════════════════════════════════
+// Owner CRUD
+// ════════════════════════════════════════════
+function ownerNew() {
+  currentOwnerId = null; currentRating = 0;
+  clearOwnerForm();
+  document.getElementById('ownerFormTitle').textContent = 'Nový záujemca';
+  document.getElementById('ownerDeleteBtn').style.display = 'none';
+  showOwnerForm(); renderOwnerList(); buildStars();
+}
+
+function ownerLoad(id) {
+  const c = candidates.find(x=>x.id===id);
+  if (!c) return;
+  currentOwnerId = id; currentRating = c.rating||0;
+  const set=(k,v)=>{const el=document.getElementById(k);if(el)el.value=v||'';};
+  set('o_firstName',c.firstName); set('o_lastName',c.lastName); set('o_dob',c.dob);
+  set('o_rodneCislo',c.rodneCislo); set('o_opCislo',c.opCislo); set('o_passCislo',c.passCislo);
+  set('o_phone',c.phone); set('o_email',c.email); set('o_contact',c.contact);
+  set('o_whereFrom',c.whereFrom); set('o_timeInBA',c.timeInBA||c.timeInBratislava);
+  set('o_studyWhere',c.studyWhere); set('o_studyYear',c.studyYear);
+  set('o_workWhere',c.workWhere); set('o_workHowLong',c.workHowLong);
+  set('o_mustHave',c.mustHave); set('o_niceToHave',c.niceToHave); set('o_wishList',c.wishList);
+  set('o_flatLikes',c.flatLikes); set('o_moveIn',c.moveIn);
+  set('o_currentSituation',c.currentSituation);
+  set('o_additionalInfo',c.additionalInfo);
+  set('o_fbUrl',c.fbUrl); set('o_notes',c.notes);
+  updateFbLink();
+
+  ['o_student','o_works'].forEach(n=>{
+    const field = n.replace('o_','');
+    document.querySelectorAll(`input[name=${n}]`).forEach(r=>r.checked=false);
+    if(c[field]){const r=document.querySelector(`input[name=${n}][value="${c[field]}"]`);if(r)r.checked=true;}
+  });
+  evalOVis();
+
+  document.getElementById('ownerFormTitle').textContent = ((c.firstName||'')+' '+(c.lastName||'')).trim()||'Záujemca';
+  document.getElementById('ownerDeleteBtn').style.display = '';
+  showOwnerForm(); renderOwnerList(); buildStars();
+}
+
+function ownerSave() {
+  const g = id => (document.getElementById(id)||{}).value||'';
+  const radio = n => { const r=document.querySelector(`input[name=${n}]:checked`); return r?r.value:''; };
+  const fn=g('o_firstName').trim(), ln=g('o_lastName').trim();
+  if(!fn&&!ln){toast('⚠️ Zadajte aspoň meno.');return;}
+  const existing = candidates.find(x=>x.id===currentOwnerId)||{};
+  const data = {
+    ...existing,
+    id: currentOwnerId||Date.now().toString(),
+    firstName:fn, lastName:ln, dob:g('o_dob'),
+    rodneCislo:g('o_rodneCislo'), opCislo:g('o_opCislo'), passCislo:g('o_passCislo'),
+    phone:g('o_phone'), email:g('o_email'), contact:g('o_contact'),
+    whereFrom:g('o_whereFrom'), timeInBA:g('o_timeInBA'),
+    student:radio('o_student'), studyWhere:g('o_studyWhere'), studyYear:g('o_studyYear'),
+    works:radio('o_works'), workWhere:g('o_workWhere'), workHowLong:g('o_workHowLong'),
+    mustHave:g('o_mustHave'), niceToHave:g('o_niceToHave'), wishList:g('o_wishList'),
+    flatLikes:g('o_flatLikes'), moveIn:g('o_moveIn'),
+    currentSituation:g('o_currentSituation'),
+    additionalInfo:g('o_additionalInfo'),
+    fbUrl:g('o_fbUrl'), notes:g('o_notes'), rating:currentRating,
+    savedAt:new Date().toISOString()
+  };
+  const idx=candidates.findIndex(x=>x.id===data.id);
+  if(idx>=0) candidates[idx]=data; else candidates.unshift(data);
+  currentOwnerId=data.id;
+  saveAll();
+  document.getElementById('ownerFormTitle').textContent=(fn+' '+ln).trim();
+  document.getElementById('ownerDeleteBtn').style.display='';
+  renderOwnerList(); toast('✅ Uložené');
+}
+
+function ownerDelete() {
+  if(!currentOwnerId||!confirm('Naozaj vymazať?'))return;
+  candidates=candidates.filter(x=>x.id!==currentOwnerId);
+  currentOwnerId=null; saveAll();
+  document.getElementById('ownerFormWrap').style.display='none';
+  document.getElementById('ownerWelcome').style.display='flex';
+  renderOwnerList(); toast('🗑 Vymazané');
+}
+
+function clearOwnerForm() {
+  ['o_firstName','o_lastName','o_dob','o_rodneCislo','o_opCislo','o_passCislo',
+   'o_phone','o_email','o_contact','o_whereFrom','o_timeInBA',
+   'o_studyWhere','o_studyYear','o_workWhere','o_workHowLong',
+   'o_mustHave','o_niceToHave','o_wishList','o_flatLikes','o_moveIn',
+   'o_currentSituation','o_additionalInfo','o_fbUrl','o_notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.querySelectorAll('input[name^=o_]').forEach(r=>r.checked=false);
+  document.querySelectorAll('#viewVlastnik .tgroup label').forEach(l=>l.classList.remove('sel'));
+  document.querySelectorAll('#viewVlastnik .subfields').forEach(s=>s.classList.remove('on'));
+  const fl=document.getElementById('o_fbLink'); if(fl)fl.style.display='none';
+  currentRating=0;
+}
+
+function showOwnerForm() {
+  document.getElementById('ownerWelcome').style.display='none';
+  document.getElementById('ownerFormWrap').style.display='flex';
+}
+
+function evalOVis() {
+  [['og_student','osub_student',['Áno','Externé']],
+   ['og_works','osub_works',['Áno','SZČO']]].forEach(([g,s,vals])=>{
+    const c=document.querySelector('#'+g+' input[type=radio]:checked');
+    if(!c)return;
+    c.closest('label').classList.add('sel');
+    document.getElementById(s).classList.toggle('on',vals.includes(c.value));
+  });
+}
+
+// ════════════════════════════════════════════
+// Toggles (shared)
+// ════════════════════════════════════════════
+function tsel(el, gId) {
+  document.querySelectorAll('#'+gId+' label').forEach(l=>l.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function tsub(subId, triggerVals) {
+  const sub = document.getElementById(subId);
+  const allR = sub.closest('.field').querySelectorAll('input[type=radio]');
+  const checked = Array.from(allR).find(r=>r.checked);
+  sub.classList.toggle('on', checked && triggerVals.includes(checked.value));
+}
+
+// ════════════════════════════════════════════
+// Stars
+// ════════════════════════════════════════════
+function buildStars() {
+  const row=document.getElementById('starsRow');
+  if(!row)return;
+  row.innerHTML='';
+  for(let i=1;i<=5;i++){
+    const b=document.createElement('button');
+    b.className='sbtn';b.innerHTML='★';
+    b.addEventListener('click',function(e){
+      const r=this.getBoundingClientRect();
+      setRating(e.clientX<r.left+r.width/2?i-.5:i);
+    });
+    b.addEventListener('mousemove',function(e){
+      const r=this.getBoundingClientRect();
+      previewStars(e.clientX<r.left+r.width/2?i-.5:i);
+    });
+    b.addEventListener('mouseleave',()=>renderStars(currentRating));
+    row.appendChild(b);
+  }
+  const lbl=document.createElement('span');lbl.className='slabel';lbl.id='ratingLabel';
+  row.appendChild(lbl);
+  renderStars(currentRating);
+}
+function previewStars(v){
+  document.querySelectorAll('.sbtn').forEach((b,i)=>{
+    b.classList.remove('full','half');
+    if(v>=i+1)b.classList.add('full');else if(v>=i+.5)b.classList.add('half');
+  });
+}
+function renderStars(v){
+  previewStars(v);
+  const l=document.getElementById('ratingLabel');
+  if(l)l.textContent=v>0?v.toFixed(1):'—';
+}
+function setRating(v){currentRating=v;renderStars(v);}
+
+// FB link
+function updateFbLink(){
+  const url=(document.getElementById('o_fbUrl')||{}).value||'';
+  const a=document.getElementById('o_fbLink');
+  if(!a)return;
+  if(url.startsWith('http')){a.href=url;a.textContent=url;a.style.display='block';}
+  else a.style.display='none';
+}
+
+// ════════════════════════════════════════════
+// Export / Import
+// ════════════════════════════════════════════
+function exportData(){
+  const blob=new Blob([JSON.stringify(candidates,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='najomnici.json';a.click();URL.revokeObjectURL(a.href);
+  toast('📥 Exportované');
+}
+function importFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('importText').value = e.target.result;
+    document.getElementById('importTextWrap').style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+function doImport(){
+  const err=document.getElementById('importErr');err.style.display='none';
+  try{
+    const raw=document.getElementById('importText').value.trim();
+    if(!raw){err.textContent='Najprv vyberte súbor JSON.';err.style.display='block';return;}
+    const data=JSON.parse(raw);
+    if(!Array.isArray(data))throw new Error('Nie je pole');
+    candidates=data;saveAll();renderOwnerList();
+    document.getElementById('importModal').classList.remove('open');
+    document.getElementById('importFile').value='';
+    document.getElementById('importTextWrap').style.display='none';
+    toast('✅ Importované '+data.length+' záznamov');
+  }catch(e){err.textContent='Neplatný JSON: '+e.message;err.style.display='block';}
+}
+
+// Toast
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════
+candidates = loadAll();
+const draft = loadDraft();
+if (draft && (draft.firstName||draft.lastName||draft.email)) {
+  const setD=(k,v,prefix='t_')=>{const el=document.getElementById(prefix+k);if(el&&v)el.value=v;};
+  Object.entries(draft).forEach(([k,v])=>setD(k,v));
+}
+</script>
+</body>
+</html>
