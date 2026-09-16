@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   NajomApp design tokens — canonical palette (spec §5.1)
+
+   The custom-property names below are IDENTICAL to the ones in the original
+   single-file prototype (najomnik.html) and to the project specification, so
+   any CSS ported across keeps working unchanged. `tokens.ts` mirrors these
+   hex values for JS consumers (charts, PDF); `tokens.test.ts` fails the build
+   if the two ever drift apart.
+
+   NEVER rename or hardcode these elsewhere — always reference the variable.
+   ========================================================================== */
+
+:root {
+  /* Ink / Text */
+  --ink: #0f1623;
+  --ink-2: #1e2a3b;
+  --ink-3: #344054;
+  --muted: #667085;
+  --subtle: #98a2b3;
+
+  /* Surfaces */
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #f2f4f7;
+
+  /* Borders */
+  --border: #e4e7ec;
+  --border-2: #d0d5dd;
+
+  /* Accent — deep indigo */
+  --accent: #3b5bdb;
+  --accent-hover: #2f4ac7;
+  --accent-light: #eef2ff;
+  --accent-mid: #c5d0fa;
+
+  /* Status */
+  --green: #12b76a;
+  --green-light: #ecfdf3;
+  --danger: #f04438;
+  --danger-light: #fef3f2;
+  --amber: #f79009;
+  --amber-light: #fffaeb;
+  --star: #f59e0b;
+  --star-half: #fcd34d;
+
+  /* Owner accent — deep violet */
+  --violet: #7c3aed;
+  --violet-light: #f5f3ff;
+  --violet-border: #ddd6fe;
+
+  /* Base radius (the sm/lg/xl scale is declared in @theme below) */
+  --radius: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Tailwind theme mapping.
+
+   `inline` is required because the values reference the custom properties
+   declared above rather than literals. This is the standard pattern for
+   bridging an existing CSS-variable palette into Tailwind utilities.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-border: var(--border);
+  --color-border-2: var(--border-2);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-accent-mid: var(--accent-mid);
+
+  --color-green: var(--green);
+  --color-green-light: var(--green-light);
+  --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
+  --color-amber: var(--amber);
+  --color-amber-light: var(--amber-light);
+  --color-star: var(--star);
+  --color-star-half: var(--star-half);
+
+  --color-violet: var(--violet);
+  --color-violet-light: var(--violet-light);
+  --color-violet-border: var(--violet-border);
+
+  /* Typography (§5.2) */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
+
+  /* Geometry (§5.1) — Tailwind emits these as --radius-* custom properties,
+     so the canonical names and values are preserved exactly. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Shadows (§5.1) — emitted as --shadow-* custom properties. */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 40px -4px rgba(16, 24, 40, 0.12), 0 4px 12px -2px rgba(16, 24, 40, 0.08);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* Accessibility standard §8: every interactive element gets a visible
+     focus ring. Uses :focus-visible so mouse users never see it. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Respect the OS "reduce motion" preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Visually hidden but available to screen readers (§8). */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
