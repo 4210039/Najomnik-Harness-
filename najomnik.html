@@ -935,7 +935,7 @@ textarea { resize: vertical; min-height: 88px; }
 
 <!-- ═══════════════════════════════════════════════════════
      ZÁUJEMCA VIEW
-═══════════════════════════════════════ -->
+═══════════════════════════════════════════════════════════ -->
 <div id="viewNajomnik">
   <div class="tenant-wrap">
 
@@ -1173,7 +1173,7 @@ textarea { resize: vertical; min-height: 88px; }
 
 <!-- ═══════════════════════════════════════════════════════
      VLASTNÍK VIEW
-═══════════════════════════════════════ -->
+═══════════════════════════════════════════════════════════ -->
 <div id="viewVlastnik">
   <div class="owner-layout">
 
@@ -1651,6 +1651,9 @@ function renderOwnerList() {
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
+// ════════════════════════════════════════════
+// Owner CRUD
+// ════════════════════════════════════════════
 function ownerNew() {
   currentOwnerId = null; currentRating = 0;
   clearOwnerForm();
