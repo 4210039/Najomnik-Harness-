@@ -16,6 +16,7 @@ export/import is the backup and migration story. Everything ships in one
 | File | Purpose |
 | --- | --- |
 | [`NajomApp_Project_Instructions.md`](NajomApp_Project_Instructions.md) | Authoritative project reference — architecture, data schema, design system, Slovak copy, security, accessibility, code quality, testing |
+| [`NajomApp_Implementation_Plan.md`](NajomApp_Implementation_Plan.md) | Sprint roadmap — 10 sprints / 30 mini-sprints from the single-file prototype to the full SaaS, including the current status snapshot |
 | [`.clinerules/najomapp.md`](.clinerules/najomapp.md) | Operational rule digest applied to every task |
 | [`AGENTS.md`](AGENTS.md) | Entry point for AI agent tooling |
 
