@@ -524,6 +524,13 @@ truth and each one can be accepted or rejected deliberately.
 | §6.3 copy | `Vyplňte povinné polia, aby ste mohli pokračovať.` / `Skontrolujte povinné polia v predchádzajúcich krokoch.` — explain why Ďalej or Odoslať is unavailable, so a disabled button is never a dead end | `app/src/components/form/TenantForm.tsx` |
 | §6.2 labels | The applicant form addresses the applicant in the second person ("Odkiaľ ste?"), while the §6.2 glossary uses the third person ("Odkiaľ pochádza?") for the owner's reading view. Both are deliberate | `app/src/components/form/steps/` |
 | §3.1 | Tailwind CSS v4 is CSS-first, so there is deliberately no `tailwind.config.ts`; the §5.1 tokens are declared in `@theme` | `app/src/index.css` |
+| §3.4 owner gate | **Superseded.** The owner gate is Supabase Auth rather than a SHA-256 password in localStorage: credentials are verified server-side, there is no hardcoded default, and the session persists across reloads (`persistSession: true`) instead of lasting only for the tab. §3.4 remains the description of the Phase 1 gate only | `app/src/lib/auth.ts`, `app/src/lib/supabase.ts` |
+| §6 copy — owner gate | `Prihlásenie prenajímateľa`, `Táto časť je určená len prenajímateľovi. Prihláste sa prosím svojím účtom.`, `Prihlásiť sa`, `Prihlasujem…`, `Odhlásiť sa`, `Načítavam…` | `app/src/components/owner/SignInForm.tsx`, `OwnerGate.tsx`, `OwnerPanel.tsx` |
+| §6.3 copy — auth failures | `Nesprávny e-mail alebo heslo.` and `Prihlásenie sa nepodarilo. Skúste to prosím znova.` — the provider's English wording is never shown to the landlord | `app/src/lib/auth.ts` |
+| §6.3 copy — owner list | `Zoznam záujemcov sa nepodarilo načítať. Skúste to prosím znova.`, `Skúsiť znova`, `Neuvedené` (an empty optional answer), `Vyberte záujemcu zo zoznamu vľavo a zobrazia sa všetky jeho údaje.` | `app/src/hooks/useCandidates.ts`, `app/src/components/owner/OwnerPanel.tsx` |
+| §6 copy — pipeline stages | `Nový` (pending), `V posudzovaní` (reviewing), `Vo výbere` (shortlisted), `Zamietnutý` (rejected), `Archivovaný` (archived). The database stores the §3.3 enum; these are display labels only | `app/src/components/owner/labels.ts` |
+| §6 copy — employment | The owner view reads back `TPP` / `SZČO` / `Brigáda` / `Nie`, matching the applicant's own answer wording, where the applicant-side pills say `Áno` / `SZČO` / `Brigáda` / `Nie` | `app/src/components/owner/labels.ts` |
+| §7 display | Rodné číslo is confined to the owner detail pane and excluded from printing with Tailwind's `print:hidden` variant, which is the `no-print` rule expressed without a bespoke class or `!important` | `app/src/components/owner/ApplicantDetail.tsx` |
 
 ---
 

@@ -71,10 +71,11 @@ for the **owner** panel; applicant behaviour has been ported.
 
 `app/` holds the React + TypeScript rewrite. It has the app shell, the design
 tokens and the **full data layer** (`app/src/lib/`: the nested↔flat record mapper,
-Zod schemas, typed CRUD), and since Sprint 3 the **applicant form is real**: a
-5-step wizard with per-step validation, draft autosave and resume, a Supabase
-submission, and a confirmation screen. Everything is covered by unit tests — **124
-across 8 files**; run `npm run check` inside `app/`.
+Zod schemas, typed CRUD), the **applicant form** — a 5-step wizard with per-step
+validation, draft autosave and resume, a Supabase submission and a confirmation
+screen — and the **owner side**: a Supabase Auth gate plus an applicant list and
+full detail view. Everything is covered by unit tests — **162 across 11 files**;
+run `npm run check` inside `app/`.
 
 The Supabase project **exists and both migrations are applied** (0001 schema + RLS,
 0002 fail-closed grants), public sign-ups are disabled, and the dashboard's
@@ -85,11 +86,12 @@ refused (`401`), crafted `rating` / `status` values are rejected by the RLS poli
 landlord user is created; run **`npm run verify:connection`** to prove the
 authenticated read.
 
-⚠️ **Not ready to deploy publicly.** The owner panel is still a static placeholder
-with no authentication (Sprint 4.1), and the applicant form now writes to the live
-database. Also note the build is **570 kB (164 kB gzip)** with
-`@supabase/supabase-js` bundled — over Vite's warning threshold, to be code-split
-before launch.
+**Deployment is no longer blocked by missing authentication**, but read the two
+caveats: the project remains a single-landlord model (`landlord_can_*` grants
+every row to any authenticated user until a `landlord_id` lands), so deploy only
+while public sign-ups stay disabled; and the bundle is **570 kB (164 kB gzip)**
+with `@supabase/supabase-js`, over Vite's warning threshold. Rating, notes and
+stage changes are still to come (Sprint 4.3).
 
 **Note:** the file predates the specification and diverges from it in a number of
 ways (storage keys, password hashing, flat vs. nested data model, component class

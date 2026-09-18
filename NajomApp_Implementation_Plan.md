@@ -16,19 +16,21 @@ the specification wins.
 
 **Snapshot date: 2026-09-18 · branch `main` · no sprint formally closed.**
 
-The project has **cleared Sprint 1's blockers**: the **Sprint 2 data layer is live**
-(both migrations applied, public sign-ups disabled, tenant path verified end-to-end
-over REST) and **Sprint 3 — the 5-step applicant form — now works in React**, with
-draft autosave, per-step Zod validation and a real Supabase submission. The
-prototype is no longer the reference for applicant behaviour; only the owner panel
-(Sprint 4) still has to be ported. Still outstanding: the authenticated read (one
-command — `npm run verify:connection`), Sprint 1.1's polish, and any deployment.
+**Sprints 3 and 4.1–4.2 are done.** The Sprint 2 data layer is live (both
+migrations applied, public sign-ups disabled, tenant path verified end-to-end over
+REST), the **5-step applicant form works in React** with draft autosave, per-step
+Zod validation and a real Supabase submission, and the **owner side sits behind
+Supabase Auth with a working applicant list and detail view** — so a submitted
+application is now visible inside the app rather than only in the database.
+`najomnik.html` is no longer the reference for either principal. Still outstanding:
+rating, notes and stage changes (Sprint 4.3), the authenticated-read confirmation
+(`npm run verify:connection`), Sprint 1.1's polish, and any deployment.
 
 ### Verified evidence
 
 | Check | Command | Result |
 | --- | --- | --- |
-| React + data-layer unit tests | `cd app && npm test` | ✅ 8 files, **128 tests passing** |
+| React + data-layer unit tests | `cd app && npm test` | ✅ 11 files, **162 tests passing** |
 | TypeScript strict check | `cd app && npm run typecheck` | ✅ clean, no errors |
 | Supabase client singleton | `ls app/src/lib/` | ✅ `supabase.ts` — lazy client, `isSupabaseConfigured` guard, 7 tests |
 | Canonical record mapper | `app/src/lib/candidate.ts` | ✅ nested ↔ flat translation, 24 tests |
@@ -55,6 +57,10 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 | Production build | `cd app && npm run build` | ✅ 18.56 kB CSS + 570.31 kB JS (164 kB gzip) — ⚠️ over Vite's 500 kB warning, see the note below |
 | Env vars reach the bundle | `grep` the built asset | ✅ `VITE_SUPABASE_URL` and the anon key are inlined — impossible to verify before Sprint 3 wired a screen to the database |
 | Production artifact served locally | `npm run serve:prod` → `:4173` | ✅ HTTP 200, `lang="sk"`, fonts and hashed assets served |
+| Owner auth gate, Sprint 4.1 | `app/src/pages/OwnerPage.test.tsx` | ✅ 8 tests — no part of the panel mounts while signed out, Slovak copy for a bad credential, sign-out closes the gate |
+| Auth wrapper | `app/src/lib/auth.test.ts` | ✅ 16 tests — session lookup, sign-in/out, and provider messages never passed through to the landlord |
+| Owner applicant list, Sprint 4.2 | `app/src/components/owner/OwnerPanel.test.tsx` | ✅ 10 tests — list, selection, Slovak labels, empty / error / retry states |
+| Rodné číslo confined to the detail | `OwnerPanel.test.tsx` §7 test | ✅ the list never contains it, it appears exactly once on the page, and it carries `print:hidden` |
 | shadcn/ui initialised | `ls app/components.json` | ❌ not initialised |
 | CI workflow | `ls .github/workflows` | ❌ absent |
 | Vercel project linked | Vercel dashboard | ⚠️ `app/vercel.json` written, connection unverified |
@@ -66,7 +72,7 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 | **S1** | Scaffold | 🟡 **~80 % — in progress** | 1.1 nearly done, 1.2 live but unverified from the landlord side, 1.3 half-configured |
 | S2 | Data Layer | 🟡 **data layer live, not closed** | 2.1 + 2.3 written, tested and now pointed at a real project; 2.2 (JSON import tool) not started |
 | S3 | Tenant Form in React | ✅ **3.1–3.3 done** | Draft autosave, per-step validation and Supabase submission all working; 27 new tests |
-| S4 | Landlord Dashboard + Auth | ⬜ not started | Runs parallel with S3 — now the next sprint, and 4.1 removes the deployment blocker |
+| S4 | Landlord Dashboard + Auth | ✅ **4.1–4.2 done** | Auth gate plus the applicant list and detail view; 4.3 (rating, notes, stage changes) remains |
 | S5 | Filters & Analytics | ⬜ not started | |
 | S6 | Calendar | ⬜ not started | |
 | S7 | Contracts | ⬜ not started | Can overlap S6 |
@@ -86,6 +92,8 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 | 3.1 Multi-step form components | ✅ done | `StepProgress` (dot + label, `aria-current="step"`), five step components under `components/form/steps/`, a shared `useTenantForm` hook, `FormField` / `FormTextArea` / `ToggleGroup` primitives, and `FormSection` for the prototype's titled cards. Layout, labels and placeholders mirror the prototype; only the active step is mounted. |
 | 3.2 Validation, draft saving & submission | ✅ done | Per-step Zod gating disables Ďalej (with a linked explanation, so the disabled button is not a dead end), field errors appear only after a field is touched, and the draft autosaves to `najomapp_draft` after 400 ms and resumes on reload. Toggle groups store the §3.3 enums, never the Slovak labels. |
 | 3.3 Confirmation & failure behaviour | ✅ done | `submitApplication()` writes through the anon path, the success screen uses the prototype's copy, and the draft is cleared **only** after a confirmed success. A failed submit keeps every answer, shows friendly Slovak copy, and never leaks the PostgREST message to the applicant. Submission is refused unless the wizard is on the last step *and* the whole application validates, so an implicit form submission (Enter in any text input) can no longer persist a half-finished record. |
+| 4.1 Authentication gate | ✅ done | `lib/auth.ts` wraps session lookup, sign-in, sign-out and change subscription; `useAuthSession` keeps React in step; the Owner tab renders the gate and **no part of the panel mounts while signed out**. Provider messages are never surfaced — a bad credential becomes Slovak copy, and anything unrecognised becomes a generic Slovak failure. Replaces Phase 1's `btoa` password with a hardcoded `admin123` fallback (§12.1). A failed sign-out still closes the gate. |
+| 4.2 Applicant list & detail | ✅ done | `useCandidates` loads as the `authenticated` role; the sidebar lists applicants with their pipeline stage and the detail pane renders the full canonical record with Slovak enum labels and Slovak-formatted dates. **Rodné číslo appears only in the detail** and carries `print:hidden` (§7), with a regression test asserting it never reaches the list. Read-only — 4.3 adds rating, notes and stage changes. |
 
 ### Security finding — surplus `anon` grants (**resolved by 0002**)
 
@@ -160,20 +168,25 @@ React rewrite must not inherit:
    honoured, so run in the SQL Editor:
    `select count(*) from public.candidates where last_name = 'RLS-PROBE-DELETE-ME';`
    → expect `0`; otherwise delete those rows.
-3. **Start Sprint 4.1 (auth)** — it is now the highest-value work: it protects the
-   owner panel and removes the "do not deploy" blocker. 4.2/4.3 (sidebar, detail
-   panel, rating, notes) follow.
-4. **Finish 1.1 and 1.3** when convenient — `npx shadcn@latest init` plus the
-   `/hooks` folder is already satisfied in spirit (`src/hooks/useTenantForm.ts`),
-   and Vercel needs Root Directory = `app` with the two env vars.
-5. **Address the bundle size** before launch: 570 kB (164 kB gzip) now that
+3. **Sprint 4.3** — rating (0–5 in half steps), notes and stage changes, saved
+   through the existing `updateOwnerReview()`. That closes Sprint 4.
+4. **Tighten the landlord policies** (migration 0003). `landlord_can_*` still read
+   `using (true)`, which is only safe while sign-ups are disabled and a single
+   account exists. This needs a `landlord_id` column — the TODO migration 0001
+   already carries.
+5. **Finish 1.1 and 1.3** when convenient — `npx shadcn@latest init`, and Vercel
+   needs Root Directory = `app` with the two env vars.
+6. **Address the bundle size** before launch: 570 kB (164 kB gzip) now that
    `@supabase/supabase-js` is bundled. Code-split the owner panel and load the
    Supabase client lazily (spec §3.1's 120 KB budget applies to the Phase 1 HTML
    file, but the warning is a real signal at Sprint 10.2's Lighthouse pass).
 
-> ⚠️ The owner panel in `app/` is **not yet password-protected** (Sprint 4.1).
-> `app/vercel.json` and `app/.env.example` exist, but the build must **not** be
-> deployed publicly until authentication lands.
+> ⚠️ The owner panel now requires a Supabase session, so the "no authentication"
+> blocker is gone. The project is still a **single-landlord** model, though:
+> `landlord_can_*` grants every row to any authenticated user, and migration
+> 0001's TODO to scope that by `landlord_id` is still open (next-actions item 4).
+> Deploy only while public sign-ups stay **disabled**, and note the 570 kB
+> (164 kB gzip) bundle — code-splitting is next-actions item 6.
 
 ---
 
