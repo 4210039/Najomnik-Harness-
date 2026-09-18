@@ -14,20 +14,35 @@ the specification wins.
 
 ## Current status — where we are right now
 
-**Snapshot date: 2026-09-17 · commit `b79d628` · branch `main` · no sprint formally closed.**
+**Snapshot date: 2026-09-18 · branch `main` · no sprint formally closed.**
 
-The project is at the very beginning of **Sprint 1**. Phase 1 (the `najomnik.html`
-prototype) is shipped and works, and the React rewrite exists as a scaffold that
-runs, typechecks and is covered by tests — but **no Supabase project exists yet,
-no data layer exists, and nothing has been deployed.**
+The project is in **Sprint 1**, with the **Sprint 2 data layer already written
+ahead of schedule in `app/src/lib/`**. Phase 1 (the `najomnik.html` prototype) is
+shipped and works, the React rewrite carries a typed, validated, fully tested data
+layer, and **the Supabase project now exists: migration 0001 is applied, public
+sign-ups are disabled, and the tenant path has been verified end-to-end over the
+REST API.** Still outstanding: a landlord account (so no authenticated read has
+been exercised yet), migration 0002, and any deployment.
 
 ### Verified evidence
 
 | Check | Command | Result |
 | --- | --- | --- |
-| React scaffold unit tests | `cd app && npm test` | ✅ 2 files, **16 tests passing** |
+| React + data-layer unit tests | `cd app && npm test` | ✅ 6 files, **97 tests passing** |
 | TypeScript strict check | `cd app && npm run typecheck` | ✅ clean, no errors |
-| Supabase client singleton | `ls app/src/lib/` | ❌ `tokens.ts`, `utils.ts` only — no `supabase.ts` |
+| Supabase client singleton | `ls app/src/lib/` | ✅ `supabase.ts` — lazy client, `isSupabaseConfigured` guard, 7 tests |
+| Canonical record mapper | `app/src/lib/candidate.ts` | ✅ nested ↔ flat translation, 24 tests |
+| Zod validation schemas | `app/src/lib/candidateSchema.ts` | ✅ per-step + whole application + owner review, 25 tests |
+| Candidate CRUD | `app/src/lib/candidates.ts` | ✅ list / get / submit / create / update / delete, 25 tests |
+| Migration 0001 applied | Supabase SQL Editor | ✅ table, 6 indexes, `updated_at` trigger, RLS + grants |
+| Project reachable | `curl $VITE_SUPABASE_URL/auth/v1/health` | ✅ HTTP 200 |
+| Vite loads `app/.env.local` | live probe through `listCandidates()` | ✅ `isSupabaseConfigured: true`, reached the real project |
+| RLS hides every row from anon | `GET /rest/v1/candidates?select=id` | ✅ HTTP 200, `content-range: */0` — zero rows visible |
+| anon cannot read a row back | `POST … Prefer: return=representation` | ✅ HTTP 401, `42501 new row violates row-level security policy` |
+| Crafted owner fields rejected | `POST … {"rating":5,"notes":"x"}` | ✅ HTTP 401, `42501` — policy requires `rating is null and notes is null` |
+| Crafted status rejected | `POST … {"status":"shortlisted"}` | ✅ HTTP 401, `42501` — policy requires `status = 'pending'` |
+| **anon holds surplus grants** | `PATCH` / `DELETE` on a non-existent id | ❌ HTTP **204** — anon carries SELECT, UPDATE and DELETE, not just INSERT → **`0002_harden_anon_grants.sql` written, not yet applied** |
+| Landlord account + authenticated read | Supabase dashboard, then `auth.signInWithPassword` | ⬜ not done — this is what still blocks closing 1.2 |
 | shadcn/ui initialised | `ls app/components.json` | ❌ not initialised |
 | CI workflow | `ls .github/workflows` | ❌ absent |
 | Vercel project linked | Vercel dashboard | ⚠️ `app/vercel.json` written, connection unverified |
@@ -36,8 +51,8 @@ no data layer exists, and nothing has been deployed.**
 
 | Sprint | Name | Status | Notes |
 | --- | --- | --- | --- |
-| **S1** | Scaffold | 🟡 **~60 % — in progress** | 1.1 nearly done, 1.2 not started, 1.3 half-configured |
-| S2 | Data Layer | ⬜ not started | Hard blocker for S3+ |
+| **S1** | Scaffold | 🟡 **~80 % — in progress** | 1.1 nearly done, 1.2 live but unverified from the landlord side, 1.3 half-configured |
+| S2 | Data Layer | 🟡 **data layer live, not closed** | 2.1 + 2.3 written, tested and now pointed at a real project; 2.2 (JSON import tool) not started |
 | S3 | Tenant Form in React | ⬜ not started | Runs parallel with S4 |
 | S4 | Landlord Dashboard + Auth | ⬜ not started | Runs parallel with S3 |
 | S5 | Filters & Analytics | ⬜ not started | |
@@ -52,8 +67,33 @@ no data layer exists, and nothing has been deployed.**
 | Mini-sprint | Status | Evidence / what remains |
 | --- | --- | --- |
 | 1.1 Vite + React + Tailwind scaffold | 🟡 mostly done | Vite + React + TS running (`app/`); Tailwind CSS **v4** wired via `@tailwindcss/vite` + `@theme` in `src/index.css`; all spec §5.1 tokens ported and mirrored in `src/lib/tokens.ts` with a drift-detecting test; folders `/pages`, `/components`, `/lib` exist; fonts (Inter + DM Serif Display) loaded in `app/index.html`; two-tab shell with ARIA tablist in `src/components/AppHeader.tsx`. **Remaining:** shadcn/ui init, `/hooks` folder, placeholder panels replaced with faithful layout ports. *Deviation: Tailwind v4 is CSS-first, so there is deliberately no `tailwind.config.ts`.* |
-| 1.2 Supabase project setup | ⬜ not started | `@supabase/supabase-js` and `zod` are already in `app/package.json` and `app/.env.example` documents `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, but there is **no Supabase project, no `candidates` table, no RLS policies and no `app/src/lib/supabase.ts`**. |
+| 1.2 Supabase project setup | 🟡 project live, landlord read pending | Project created and `supabase/migrations/0001_init.sql` applied; public sign-ups disabled; `app/.env.local` holds the URL and anon key (git-ignored, mode 600) while the committed `.env.example` stays blank. Verified over REST: reachable (200), anon insert succeeds (201), anon read-back denied (401), a crafted `rating`/`notes` denied (401), a crafted `status` denied (401), anon sees `*/0` rows. `app/src/lib/supabase.ts` is the lazy singleton (7 tests). **Remaining:** create the landlord user, sign in and read a row; apply `0002_harden_anon_grants.sql`; turn "Automatically expose new tables" off in the dashboard. |
 | 1.3 Git, Vercel & env config | 🟡 half-configured | Repo on GitHub (`origin`), `app/vercel.json` present (vite framework, `npm ci`, SPA rewrite), `.gitignore` at root and in `app/` excludes `.env.local`, `.env.example` committed with blank values. **Remaining:** actually connecting the repo to Vercel, setting env vars in the dashboard, and verifying a production deploy. |
+| 2.1 Supabase CRUD for candidates | 🟡 code complete | `app/src/lib/candidates.ts` — `listCandidates`, `getCandidateById`, `submitApplication` (tenant, insert without read-back because `anon` may not SELECT), `createCandidate`, `updateCandidate`, `updateOwnerReview`, `deleteCandidate`; 25 tests assert the exact PostgREST chain, the flattened payloads and that a failure never echoes Rodné číslo. **Remaining:** replacing the localStorage calls in the UI once Sprint 3/4 screens exist. |
+| 2.3 TypeScript data model & validation | 🟡 mostly done | `candidate.ts` (nested canonical record, row/patch/draft types, half-star rating helpers), `candidateSchema.ts` (per-step schemas for Sprint 3.2, whole-application schema, owner-review schema, canonical Slovak error copy) and `listing_id` already nullable in the migration. **Remaining:** `supabase gen types typescript` against the live project to replace the hand-written `CandidateRow`. |
+
+### Security finding — surplus `anon` grants (open, fix ready)
+
+Verifying the live project over the REST API showed that `anon` carries **SELECT,
+UPDATE and DELETE** on `public.candidates`, not just the INSERT that migration
+0001 intended: `PATCH` and `DELETE` against a **non-existent** id answer `204`
+instead of `401 permission denied`, and a read answers `200` with an empty list
+instead of being refused. Cause: the project carries Supabase's default
+"Automatically expose new tables" grants, so 0001's premise that those grants were
+off is untrue for this project.
+
+No applicant data is exposed today — RLS is on, and the only `anon` policy is
+`applicants_may_submit` (INSERT), which is why the read returns `*/0` rows. But the
+surplus grants are a latent hole: they go live the moment a permissive `anon`
+policy is added or RLS is switched off by accident, and 0001's own §9(b)
+verification ("expect anon → INSERT only") can no longer pass.
+
+**Fix, written and waiting to be applied:** `supabase/migrations/0002_harden_anon_grants.sql`
+(`revoke all on public.candidates from anon` + re-`grant insert`). Its root cause —
+**Project Settings → Data API → Automatically expose new tables** — must also be
+switched **OFF** in the dashboard, or every table added in later sprints starts
+life this permissive.
+
 
 ### Carried forward from Phase 1 — compliance backlog
 
@@ -79,16 +119,20 @@ React rewrite must not inherit:
 
 ### Immediate next actions (start here)
 
-1. **Finish 1.1** — run `npx shadcn@latest init` in `app/`, add the `/hooks`
+1. **Apply `0002_harden_anon_grants.sql`** and switch
+   **Project Settings → Data API → Automatically expose new tables** OFF. Until
+   then the project is not fail-closed the way 0001 documents it.
+2. **Create the landlord user** (Authentication → Users → Add user → auto-confirm;
+   sign-ups stay disabled), sign in once, and confirm an authenticated read
+   returns rows. That is the last thing standing between 1.2 and "done".
+3. **Finish 1.1** — run `npx shadcn@latest init` in `app/`, add the `/hooks`
    folder, and replace the two placeholder panels with faithful visual ports of
    the prototype layout.
-2. **Do 1.2** — create the Supabase project, define the `candidates` table against
-   the **canonical nested** data model, enable RLS (landlord-only writes, public
-   inserts), and add `app/src/lib/supabase.ts`.
-3. **Close 1.3** — connect Vercel, set `VITE_SUPABASE_URL` /
-   `VITE_SUPABASE_ANON_KEY`, verify the production deploy.
-4. **Then, and only then, start S2** — no work on Sprint 3+ before the data layer
-   is live.
+4. **Close 1.3** — connect Vercel (Root Directory = `app`), set
+   `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` for Production, Preview and
+   Development, and verify the production deploy.
+5. **Then finish S2** — 2.2 (the one-time JSON import tool) is the only
+   mini-sprint left in the data layer before Sprint 3+.
 
 > ⚠️ The owner panel in `app/` is **not yet password-protected** (Sprint 4.1).
 > `app/vercel.json` and `app/.env.example` exist, but the build must **not** be
