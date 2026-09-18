@@ -28,7 +28,7 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 
 | Check | Command | Result |
 | --- | --- | --- |
-| React + data-layer unit tests | `cd app && npm test` | ✅ 8 files, **124 tests passing** |
+| React + data-layer unit tests | `cd app && npm test` | ✅ 8 files, **128 tests passing** |
 | TypeScript strict check | `cd app && npm run typecheck` | ✅ clean, no errors |
 | Supabase client singleton | `ls app/src/lib/` | ✅ `supabase.ts` — lazy client, `isSupabaseConfigured` guard, 7 tests |
 | Canonical record mapper | `app/src/lib/candidate.ts` | ✅ nested ↔ flat translation, 24 tests |
@@ -51,6 +51,7 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 | Authenticated read | `npm run verify:connection` |  **run it** — the last item blocking 1.2 |
 | Applicant form, Sprint 3 | `app/src/components/form/TenantForm.test.tsx` | ✅ 15 tests — step gating, touched-only errors, conditional fields, resume, submission, failure safety |
 | Draft persistence | `app/src/lib/draft.test.ts` | ✅ 12 tests — round-trip, corrupt JSON, unknown keys, storage unavailable |
+| **Implicit submission guard** | `TenantForm.test.tsx` | ✅ **bug fixed** — a `<form>` submits on Enter from *any* step, so pressing Enter on Byt saved a half-finished application and skipped Situácia entirely. Submission now requires the last step plus a valid application; Enter means "continue" until then. Found by the user testing locally, not by the suite — the original 124 tests all passed with the bug present |
 | Production build | `cd app && npm run build` | ✅ 18.56 kB CSS + 570.31 kB JS (164 kB gzip) — ⚠️ over Vite's 500 kB warning, see the note below |
 | Env vars reach the bundle | `grep` the built asset | ✅ `VITE_SUPABASE_URL` and the anon key are inlined — impossible to verify before Sprint 3 wired a screen to the database |
 | Production artifact served locally | `npm run serve:prod` → `:4173` | ✅ HTTP 200, `lang="sk"`, fonts and hashed assets served |
@@ -84,7 +85,7 @@ command — `npm run verify:connection`), Sprint 1.1's polish, and any deploymen
 | 2.3 TypeScript data model & validation | 🟡 mostly done | `candidate.ts` (nested canonical record, row/patch/draft types, half-star rating helpers), `candidateSchema.ts` (per-step schemas, whole-application schema, owner-review schema, canonical Slovak error copy) and `listing_id` already nullable in the migration. **Remaining:** `supabase gen types typescript` against the live project to replace the hand-written `CandidateRow`. |
 | 3.1 Multi-step form components | ✅ done | `StepProgress` (dot + label, `aria-current="step"`), five step components under `components/form/steps/`, a shared `useTenantForm` hook, `FormField` / `FormTextArea` / `ToggleGroup` primitives, and `FormSection` for the prototype's titled cards. Layout, labels and placeholders mirror the prototype; only the active step is mounted. |
 | 3.2 Validation, draft saving & submission | ✅ done | Per-step Zod gating disables Ďalej (with a linked explanation, so the disabled button is not a dead end), field errors appear only after a field is touched, and the draft autosaves to `najomapp_draft` after 400 ms and resumes on reload. Toggle groups store the §3.3 enums, never the Slovak labels. |
-| 3.3 Confirmation & failure behaviour | ✅ done | `submitApplication()` writes through the anon path, the success screen uses the prototype's copy, and the draft is cleared **only** after a confirmed success. A failed submit keeps every answer, shows friendly Slovak copy, and never leaks the PostgREST message to the applicant. |
+| 3.3 Confirmation & failure behaviour | ✅ done | `submitApplication()` writes through the anon path, the success screen uses the prototype's copy, and the draft is cleared **only** after a confirmed success. A failed submit keeps every answer, shows friendly Slovak copy, and never leaks the PostgREST message to the applicant. Submission is refused unless the wizard is on the last step *and* the whole application validates, so an implicit form submission (Enter in any text input) can no longer persist a half-finished record. |
 
 ### Security finding — surplus `anon` grants (**resolved by 0002**)
 

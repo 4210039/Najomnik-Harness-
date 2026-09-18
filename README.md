@@ -44,10 +44,18 @@ npm run check          # typecheck + all unit tests (the gate to run before comm
 npm run test:watch     # unit tests in watch mode
 npm run serve:prod     # production build, then preview → http://localhost:4173
 npm run verify:connection   # sign in as the landlord and prove the Supabase read
+npm run list:submissions    # print the newest applications (Rodné číslo excluded)
 ```
 
 `npm run verify:connection` asks for a row **count**, never rows, so no applicant
 data is loaded or printed, and the password is typed with the echo switched off.
+`npm run list:submissions` goes one step further and lists the newest applications
+so a local submission can be confirmed — it **never selects `rc`**, so Rodné číslo
+cannot leak into your terminal (§7).
+
+> **The owner dashboard does not exist yet** (Sprint 4.2), so the Vlastník tab is a
+> static placeholder and cannot show submitted applicants. To inspect them today,
+> use `npm run list:submissions` or the Supabase **Table Editor**.
 
 Working in a Codespace? The forwarded `…-5173.app.github.dev` URL *is* the local
 dev server — keep that port's visibility **Private**, because the owner panel is

@@ -28,6 +28,9 @@ import { createClient } from "@supabase/supabase-js";
 
 const ENV_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "..", ".env.local");
 
+/** `--list` also prints the newest applications (see `printRecentSubmissions`). */
+const WANT_LIST = process.argv.includes("--list");
+
 /** Parse a dotenv-style file: `KEY=value`, `#` comments, optional quotes. */
 function readEnvFile(path) {
   let contents = "";
@@ -118,6 +121,57 @@ async function askHidden(rl, question) {
   }
 }
 
+/**
+ * Columns shown by `--list`. `rc` (Rodné číslo) is deliberately NOT selected, so
+ * the sensitive value never leaves the database at all — it cannot be printed by
+ * accident if it was never fetched (spec §7).
+ */
+const LIST_COLUMNS = [
+  "status",
+  "created_at",
+  "first_name",
+  "last_name",
+  "email",
+  "phone",
+  "origin",
+];
+const LIST_LIMIT = 10;
+
+/**
+ * Print the newest applications so a locally submitted form can be confirmed
+ * without the owner dashboard, which does not exist yet (Sprint 4.2).
+ */
+async function printRecentSubmissions(supabase) {
+  const { data, error } = await supabase
+    .from("candidates")
+    .select(LIST_COLUMNS.join(", "))
+    .order("created_at", { ascending: false })
+    .limit(LIST_LIMIT);
+
+  if (error) {
+    fail(`Listing applications failed: ${error.message}`);
+    return;
+  }
+
+  if (data.length === 0) {
+    console.log("\nNo applications yet — submit the form, then run this again.\n");
+    return;
+  }
+
+  console.log(`\nNewest ${data.length} application(s):\n`);
+  for (const row of data) {
+    const name = [row.first_name, row.last_name].filter(Boolean).join(" ");
+    const when = new Date(row.created_at).toISOString().slice(0, 16).replace("T", " ");
+    const contact = [row.email, row.phone].filter(Boolean).join("  ");
+    const origin = row.origin ? `  (${row.origin})` : "";
+
+    console.log(`  ${when}  ${String(row.status).padEnd(11)}  ${name}`);
+    console.log(`                      ${contact}${origin}`);
+  }
+
+  console.log("\nNote: Rodné číslo is not selected here, by design (§7).\n");
+}
+
 /** Report a failure in the terms the person running the script needs. */
 function fail(message) {
   console.error(`\n❌ ${message}\n`);
@@ -186,10 +240,13 @@ async function main() {
   }
 
   console.log(`Authenticated SELECT ok — public.candidates holds ${count ?? "an unknown number of"} row(s).`);
-  if ((count ?? 0) > 0) {
+
+  if (WANT_LIST) {
+    await printRecentSubmissions(supabase);
+  } else if ((count ?? 0) > 0) {
     console.log(
-      "   Note: rows exist, but this script never reads them.\n" +
-        "   If they are the old verification probes, remove them in the SQL Editor:\n" +
+      "   Re-run with --list to see the newest applications (Rodné číslo excluded).\n" +
+        "   If the rows are the old verification probes, remove them in the SQL Editor:\n" +
         "     delete from public.candidates where last_name = 'RLS-PROBE-DELETE-ME';",
     );
   }

@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test",
     "serve:prod": "npm run build && vite preview",
-    "verify:connection": "node scripts/verify-connection.mjs"
+    "verify:connection": "node scripts/verify-connection.mjs",
+    "list:submissions": "node scripts/verify-connection.mjs --list"
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",
