@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check": "npm run typecheck && npm test",
+    "serve:prod": "npm run build && vite preview",
     "verify:connection": "node scripts/verify-connection.mjs"
   },
   "dependencies": {
