@@ -1,8 +1,22 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+
+/**
+ * The App shell tests must not touch the network. `isSupabaseConfigured` is true
+ * on any machine that has a filled-in `.env.local`, which would make the owner
+ * tab perform a real session lookup — and behave differently per machine.
+ * Rendering it as unconfigured keeps these tests about the shell, and keeps the
+ * owner gate's own behaviour in `OwnerPage.test.tsx` where it belongs.
+ */
+vi.mock("@/lib/supabase", () => ({
+  isSupabaseConfigured: false,
+  getSupabase: () => {
+    throw new Error("Supabase is not configured in the App shell tests.");
+  },
+}));
 
 describe("App shell (Sprint 1.1)", () => {
   it("renders the brand mark", () => {

@@ -9,7 +9,7 @@ interface FormFieldProps {
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
-  type?: "text" | "tel" | "email" | "date";
+  type?: "text" | "tel" | "email" | "date" | "password";
   placeholder?: string;
   required?: boolean;
   /** Shown only once the field has been touched — see `useTenantForm.errorFor`. */
