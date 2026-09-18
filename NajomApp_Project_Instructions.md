@@ -508,6 +508,23 @@ compliance; the spec wins in every case.
 Verified clean: no `var`, no `!important`, no `eval()`, no `document.write()`,
 no external JS, CSS variable names all match §5.1, file size within budget.
 
+## 13. Amendments introduced by the React rewrite (pending ratification)
+
+These are ADDITIONS the code needed and that this document did not yet define. They
+are listed rather than silently applied, so this file stays the single source of
+truth and each one can be accepted or rejected deliberately.
+
+| Area | Addition | Where it lives |
+| --- | --- | --- |
+| §3.3 record | `status` (`pending` \| `reviewing` \| `shortlisted` \| `rejected` \| `archived`) and `listingId` (nullable until Sprint 9) | `app/src/lib/candidate.ts`, migration 0001 |
+| §3.3 storage | `najomapp_draft` — the applicant's in-progress form. Phase 1 needed no draft because the applicants array *was* the store; in the rewrite the draft is a scratchpad, cleared after a confirmed submission | `app/src/lib/draft.ts` |
+| §6.3 copy | `Zadajte platný dátum` — the move-in column is a real `date`, so free text such as "od 1. septembra" cannot be stored | `app/src/lib/candidateSchema.ts` |
+| §6.3 copy | `Hodnotenie musí byť 0 – 5 v krokoch po 0,5` — half-star granularity is new in React | `app/src/lib/candidateSchema.ts` |
+| §6.3 copy | `Žiadosť sa nepodarilo odoslať. Skúste to prosím znova.` — shown when submission fails; the PostgREST message is technical and must never reach an applicant | `app/src/hooks/useTenantForm.ts` |
+| §6.3 copy | `Vyplňte povinné polia, aby ste mohli pokračovať.` / `Skontrolujte povinné polia v predchádzajúcich krokoch.` — explain why Ďalej or Odoslať is unavailable, so a disabled button is never a dead end | `app/src/components/form/TenantForm.tsx` |
+| §6.2 labels | The applicant form addresses the applicant in the second person ("Odkiaľ ste?"), while the §6.2 glossary uses the third person ("Odkiaľ pochádza?") for the owner's reading view. Both are deliberate | `app/src/components/form/steps/` |
+| §3.1 | Tailwind CSS v4 is CSS-first, so there is deliberately no `tailwind.config.ts`; the §5.1 tokens are declared in `@theme` | `app/src/index.css` |
+
 ---
 
 This document is the authoritative reference for all work in this project. Update
