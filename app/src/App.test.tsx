@@ -88,14 +88,14 @@ describe("App shell (Sprint 1.1)", () => {
 
   it("lists the five canonical Slovak step names in order (spec §6.4)", () => {
     render(<App />);
-    const steps = screen.getAllByRole("listitem").map((item) => item.textContent);
-    expect(steps).toEqual([
-      "1. Osobné",
-      "2. Pobyt",
-      "3. Štúdium & Práca",
-      "4. Byt",
-      "5. Situácia",
-    ]);
+    const progress = screen.getByRole("navigation", { name: "Priebeh formulára" });
+    const steps = within(progress)
+      .getAllByRole("listitem")
+      // The leading digit is decorative (aria-hidden), so strip it to read the
+      // label. `textContent` is DOM text and still contains it.
+      .map((item) => item.textContent?.replace(/^\d/, "") ?? "");
+
+    expect(steps).toEqual(["Osobné", "Pobyt", "Štúdium & Práca", "Byt", "Situácia"]);
   });
 
   it("provides a skip link for keyboard users (§8)", () => {
