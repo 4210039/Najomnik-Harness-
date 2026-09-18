@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:connection": "node scripts/verify-connection.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",
