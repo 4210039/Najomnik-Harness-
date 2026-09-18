@@ -44,6 +44,7 @@ export function ApartmentStep(props: StepProps) {
         <FormField
           label="Kedy by ste chceli nasťahovať?"
           type="date"
+          required
           {...bindField(props, "apartment", "moveInDate")}
         />
       </div>

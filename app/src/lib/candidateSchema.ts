@@ -93,6 +93,19 @@ const optionalDate = z
   .trim()
   .refine((value) => value === "" || isValidIsoDate(value), { message: INVALID_DATE_MESSAGE });
 
+/**
+ * A date that must be supplied AND be a real calendar date.
+ *
+ * Used for `moveInDate`, which the applicant makes mandatory (the landlord needs
+ * to know when the flat is wanted). The column stays nullable — the requirement
+ * belongs to the form, not to the schema of the table.
+ */
+const requiredDate = z
+  .string()
+  .trim()
+  .min(1, REQUIRED_FIELD_MESSAGE)
+  .refine(isValidIsoDate, { message: INVALID_DATE_MESSAGE });
+
 const rating = z
   .number()
   .min(0, INVALID_RATING_MESSAGE)
@@ -141,7 +154,7 @@ export const apartmentStepSchema = z.object({
   niceToHave: optionalText,
   dream: optionalText,
   likes: optionalText,
-  moveInDate: optionalDate,
+  moveInDate: requiredDate,
 });
 
 // ── step 5: Situácia ────────────────────────────────────────────────────────

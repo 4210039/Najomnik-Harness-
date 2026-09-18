@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ComponentType, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { StepProgress } from "@/components/form/StepProgress";
 import { SuccessScreen } from "@/components/form/SuccessScreen";
@@ -71,6 +71,41 @@ export function TenantForm() {
     ? EARLIER_STEP_INCOMPLETE_MESSAGE
     : STEP_INCOMPLETE_MESSAGE;
 
+  /**
+   * Stop Enter from ever submitting the application early.
+   *
+   * WHY THIS EXISTS
+   *   A `<form>` performs an *implicit submission* when Enter is pressed in a
+   *   single-line input — from ANY step. That is what saved a half-finished
+   *   application and skipped every remaining step: on Byt, Enter in the
+   *   move-in date field jumped straight to the confirmation, so Situácia was
+   *   never shown.
+   *
+   *   An `onSubmit` guard alone was not enough to be confident about, because
+   *   the behaviour depends on the browser. Intercepting the keydown removes the
+   *   possibility instead of reacting to it: Enter now means "continue" until the
+   *   last step, and only there means "submit".
+   *
+   * Elements where Enter has its own meaning are left alone: a textarea inserts a
+   * newline, and a button or link must keep its own Enter behaviour (otherwise
+   * Enter on "Späť" would move forwards).
+   */
+  function handleFormKeyDown(event: ReactKeyboardEvent<HTMLFormElement>): void {
+    if (event.key !== "Enter") return;
+
+    const target = event.target as HTMLElement;
+    if (["TEXTAREA", "BUTTON", "A"].includes(target.tagName)) return;
+
+    event.preventDefault();
+
+    if (!isLastStep) {
+      form.goNext();
+      return;
+    }
+
+    if (form.canSubmit && !isSubmitting) void form.submit();
+  }
+
   return (
     <>
       <StepProgress currentStep={form.currentStep} />
@@ -82,13 +117,12 @@ export function TenantForm() {
 
       <form
         noValidate
+        onKeyDown={handleFormKeyDown}
         onSubmit={(event) => {
-          // A <form> submits implicitly when Enter is pressed in a text input —
-          // from ANY step. Unguarded, that saved a half-finished application and
-          // skipped every remaining step (found by manual testing: Enter in the
-          // date field on Byt went straight to the confirmation, so Situácia was
-          // never shown). The wizard therefore owns the decision: Enter means
-          // "continue" until the last step, where it means "submit".
+          // Backstop only. The keydown guard below already stops the implicit
+          // submission that a <form> performs when Enter is pressed in a text
+          // input, but a programmatic submit() must not be able to save a
+          // half-finished application either.
           event.preventDefault();
 
           if (!isLastStep) {
