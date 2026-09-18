@@ -83,8 +83,20 @@ export function TenantForm() {
       <form
         noValidate
         onSubmit={(event) => {
+          // A <form> submits implicitly when Enter is pressed in a text input —
+          // from ANY step. Unguarded, that saved a half-finished application and
+          // skipped every remaining step (found by manual testing: Enter in the
+          // date field on Byt went straight to the confirmation, so Situácia was
+          // never shown). The wizard therefore owns the decision: Enter means
+          // "continue" until the last step, where it means "submit".
           event.preventDefault();
-          void form.submit();
+
+          if (!isLastStep) {
+            form.goNext(); // itself a no-op unless the current step validates
+            return;
+          }
+
+          if (form.canSubmit && !isSubmitting) void form.submit();
         }}
       >
         <StepComponent {...stepProps} />

@@ -160,6 +160,11 @@ export function useTenantForm(): TenantFormController {
   }, [currentStep, goToStep]);
 
   const submit = useCallback(async (): Promise<void> => {
+    // Defence in depth: the last step is the only place an application may be
+    // saved, and only once it validates completely. TenantForm checks too, but
+    // this guard means no future caller can persist an incomplete record.
+    if (currentStep !== LAST_STEP || !canSubmit) return;
+
     setStatus("submitting");
     setSubmitError("");
 
@@ -173,7 +178,7 @@ export function useTenantForm(): TenantFormController {
       setSubmitError(SUBMIT_FAILED_MESSAGE);
       setStatus("error");
     }
-  }, [draft]);
+  }, [currentStep, canSubmit, draft]);
 
   const reset = useCallback((): void => {
     setDraft(createEmptyCandidateDraft());

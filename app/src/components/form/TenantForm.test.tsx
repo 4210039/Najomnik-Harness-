@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -256,5 +256,61 @@ it("reveals the study questions only after a studying answer", async () => {
     expect(screen.getByLabelText(/Meno/)).toHaveValue("");
     expect(screen.getByText("Krok 1 z 5: Osobné")).toBeInTheDocument();
     expect(window.localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+  });
+
+  it("shows the Situácia step with both of its questions", async () => {
+    const user = userEvent.setup();
+    render(<TenantForm />);
+
+    await advanceToLastStep(user);
+
+    expect(screen.getByRole("heading", { name: "Aktuálna životná situácia" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Opíšte vašu aktuálnu bytovú situáciu/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Čokoľvek ďalšie/)).toBeInTheDocument();
+    expect(screen.getByText("Krok 5 z 5: Situácia")).toBeInTheDocument();
+  });
+
+  it("ignores an implicit form submission on an earlier step", async () => {
+    const user = userEvent.setup();
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    await fillStepOne(user);
+
+    // jsdom does not implement implicit submission on Enter, so fire the event
+    // the browser fires. This is the path that used to save a half-finished
+    // application from any step — e.g. pressing Enter in the date field on Byt —
+    // skipping Situácia and every step after it.
+    const form = screen.getByLabelText(/Meno/).closest("form");
+    fireEvent.submit(form as HTMLFormElement);
+
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "Ďakujeme!" })).not.toBeInTheDocument();
+    // Enter behaves like Ďalej when the step is complete: it moves on instead.
+    expect(screen.getByText("Krok 2 z 5: Pobyt")).toBeInTheDocument();
+  });
+
+  it("treats an implicit submission on an incomplete step as a no-op", async () => {
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    // Step 1 is empty, so nothing may be saved and nothing may advance.
+    const form = screen.getByLabelText(/Meno/).closest("form");
+    fireEvent.submit(form as HTMLFormElement);
+
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Krok 1 z 5: Osobné")).toBeInTheDocument();
+  });
+
+  it("still submits when the last step is submitted implicitly", async () => {
+    const user = userEvent.setup();
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    await advanceToLastStep(user);
+    const form = screen.getByLabelText(/Opíšte vašu aktuálnu bytovú situáciu/).closest("form");
+    fireEvent.submit(form as HTMLFormElement);
+
+    await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
   });
 });
