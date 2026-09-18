@@ -60,6 +60,18 @@ grant select, insert, update, delete on table public.candidates to authenticated
 --     empty list — while an insert must still succeed (201). Do NOT test this in
 --     the SQL Editor: it runs as a superuser and bypasses both grants and RLS.
 --
+--     Verified after applying this file (2026-09-18):
+--       GET    /rest/v1/candidates?select=id   -> 401 permission denied
+--       PATCH  ...?id=eq.<no-such-id>          -> 401 permission denied
+--       DELETE ...?id=eq.<no-such-id>          -> 401 permission denied
+--       POST   /rest/v1/candidates             -> 201 (tenant path intact)
+--
+--     WARNING: `Prefer: tx=rollback` is NOT honoured by this project's Data API.
+--     Probe inserts sent with that header persisted and had to be removed from the
+--     SQL Editor afterwards. Treat every external write test as permanent: clean up
+--     after it, or use a real `begin; ... rollback;` transaction in the SQL Editor,
+--     where rollback does work.
+--
 -- NOTE (Sprint 4.1, not fixed here): public.touch_updated_at() is a trigger
 -- function that PostgreSQL grants EXECUTE on to PUBLIC by default. It is never
 -- called directly, so revoking that EXECUTE — and pinning its search_path —

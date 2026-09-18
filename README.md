@@ -42,16 +42,17 @@ that map the canonical nested record (§3.3) onto the flat `candidates` columns,
 the Zod schemas for both forms, and typed CRUD over Supabase. All of it is
 covered by unit tests — run `npm test` and `npm run typecheck` inside `app/`.
 
-The Supabase project **exists and migration 0001 is applied** (public sign-ups
-disabled). The tenant path is verified end-to-end over the REST API: an
-unauthenticated insert succeeds, reading a row back is refused, and crafted
-`rating` / `status` values are rejected by the RLS policy. Two things remain:
-create the landlord user so an authenticated read can be exercised, and apply
-`supabase/migrations/0002_harden_anon_grants.sql` — verification showed `anon`
-still carries Supabase's default SELECT/UPDATE/DELETE grants, which the dashboard
-setting "Automatically expose new tables" must also stop granting. The owner panel
-is also **not yet password-protected** — authentication lands in Sprint 4.1, so the
-scaffold must not be deployed publicly.
+The Supabase project **exists and both migrations are applied** (0001 schema + RLS,
+0002 fail-closed grants), public sign-ups are disabled, and the dashboard's
+"Automatically expose new tables" setting is off. The tenant path is verified
+end-to-end over the REST API: an unauthenticated insert succeeds (`201`), reading a
+row back is refused (`401`), crafted `rating` / `status` values are rejected by the
+RLS policy (`401`), and after 0002 `anon` can no longer read, update or delete at
+all. The landlord user is created; run **`npm run verify:connection`** inside `app/`
+to prove the authenticated read — it asks only for a row count (never applicant
+data) and hides the password as you type. The owner panel is also **not yet
+password-protected** — authentication lands in Sprint 4.1, so the scaffold must not
+be deployed publicly.
 
 **Note:** the file predates the specification and diverges from it in a number of
 ways (storage keys, password hashing, flat vs. nested data model, component class

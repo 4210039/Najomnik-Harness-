@@ -27,6 +27,11 @@
 --   * No automatic grants: this project was created with "Automatically expose
 --     new tables" OFF, so the GRANT statements below are load-bearing. Without
 --     them the Data API cannot reach the table at all.
+--     CORRECTION (2026-09-18): the project did NOT honour that setting. `anon`
+--     carried Supabase's default SELECT/UPDATE/DELETE in addition to the INSERT
+--     granted here, so the intended posture was not actually in force. See
+--     0002_harden_anon_grants.sql, which revokes them, and keep "Automatically
+--     expose new tables" OFF so later tables do not start life the same way.
 -- ============================================================================
 
 

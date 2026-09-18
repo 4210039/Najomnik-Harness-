@@ -19,10 +19,10 @@ the specification wins.
 The project is in **Sprint 1**, with the **Sprint 2 data layer already written
 ahead of schedule in `app/src/lib/`**. Phase 1 (the `najomnik.html` prototype) is
 shipped and works, the React rewrite carries a typed, validated, fully tested data
-layer, and **the Supabase project now exists: migration 0001 is applied, public
-sign-ups are disabled, and the tenant path has been verified end-to-end over the
-REST API.** Still outstanding: a landlord account (so no authenticated read has
-been exercised yet), migration 0002, and any deployment.
+layer, and **the Supabase project now exists: both migrations are applied, public
+sign-ups are disabled, and the tenant path is verified end-to-end over the REST
+API.** Still outstanding: the authenticated read (one command —
+`npm run verify:connection`), and any deployment.
 
 ### Verified evidence
 
@@ -37,12 +37,18 @@ been exercised yet), migration 0002, and any deployment.
 | Migration 0001 applied | Supabase SQL Editor | ✅ table, 6 indexes, `updated_at` trigger, RLS + grants |
 | Project reachable | `curl $VITE_SUPABASE_URL/auth/v1/health` | ✅ HTTP 200 |
 | Vite loads `app/.env.local` | live probe through `listCandidates()` | ✅ `isSupabaseConfigured: true`, reached the real project |
-| RLS hides every row from anon | `GET /rest/v1/candidates?select=id` | ✅ HTTP 200, `content-range: */0` — zero rows visible |
+| RLS hides every row from anon *(before 0002)* | `GET /rest/v1/candidates?select=id` | ✅ HTTP 200, `content-range: */0` — zero rows visible |
 | anon cannot read a row back | `POST … Prefer: return=representation` | ✅ HTTP 401, `42501 new row violates row-level security policy` |
 | Crafted owner fields rejected | `POST … {"rating":5,"notes":"x"}` | ✅ HTTP 401, `42501` — policy requires `rating is null and notes is null` |
 | Crafted status rejected | `POST … {"status":"shortlisted"}` | ✅ HTTP 401, `42501` — policy requires `status = 'pending'` |
-| **anon holds surplus grants** | `PATCH` / `DELETE` on a non-existent id | ❌ HTTP **204** — anon carries SELECT, UPDATE and DELETE, not just INSERT → **`0002_harden_anon_grants.sql` written, not yet applied** |
-| Landlord account + authenticated read | Supabase dashboard, then `auth.signInWithPassword` | ⬜ not done — this is what still blocks closing 1.2 |
+| **anon held surplus grants** | `PATCH` / `DELETE` on a non-existent id | ✅ **fixed by 0002** — was HTTP `204`, now HTTP `401 permission denied` |
+| Migration 0002 applied | Supabase SQL Editor | ✅ `revoke all … from anon` + `grant insert` → "Success. No rows returned" |
+| Auto-expose new tables OFF | Supabase dashboard | ✅ switched off — the root cause of the row above, now closed for future tables |
+| anon can no longer read | `GET /rest/v1/candidates?select=id` | ✅ HTTP `401` `42501 permission denied for table candidates` (was `200` with `*/0`) |
+| Tenant insert still works | `POST` with the anon key | ✅ HTTP `201` — 0002 broke nothing |
+| Live browser check | DevTools console on the dev server | ✅ `anon` reads are refused with `401` in the real client, not just in probes |
+| Landlord account created | Supabase dashboard | ✅ created and confirmed, using the project owner's own address |
+| Authenticated read | `npm run verify:connection` | ⬜ **run it** — the last item blocking 1.2 |
 | shadcn/ui initialised | `ls app/components.json` | ❌ not initialised |
 | CI workflow | `ls .github/workflows` | ❌ absent |
 | Vercel project linked | Vercel dashboard | ⚠️ `app/vercel.json` written, connection unverified |
@@ -67,32 +73,51 @@ been exercised yet), migration 0002, and any deployment.
 | Mini-sprint | Status | Evidence / what remains |
 | --- | --- | --- |
 | 1.1 Vite + React + Tailwind scaffold | 🟡 mostly done | Vite + React + TS running (`app/`); Tailwind CSS **v4** wired via `@tailwindcss/vite` + `@theme` in `src/index.css`; all spec §5.1 tokens ported and mirrored in `src/lib/tokens.ts` with a drift-detecting test; folders `/pages`, `/components`, `/lib` exist; fonts (Inter + DM Serif Display) loaded in `app/index.html`; two-tab shell with ARIA tablist in `src/components/AppHeader.tsx`. **Remaining:** shadcn/ui init, `/hooks` folder, placeholder panels replaced with faithful layout ports. *Deviation: Tailwind v4 is CSS-first, so there is deliberately no `tailwind.config.ts`.* |
-| 1.2 Supabase project setup | 🟡 project live, landlord read pending | Project created and `supabase/migrations/0001_init.sql` applied; public sign-ups disabled; `app/.env.local` holds the URL and anon key (git-ignored, mode 600) while the committed `.env.example` stays blank. Verified over REST: reachable (200), anon insert succeeds (201), anon read-back denied (401), a crafted `rating`/`notes` denied (401), a crafted `status` denied (401), anon sees `*/0` rows. `app/src/lib/supabase.ts` is the lazy singleton (7 tests). **Remaining:** create the landlord user, sign in and read a row; apply `0002_harden_anon_grants.sql`; turn "Automatically expose new tables" off in the dashboard. |
+| 1.2 Supabase project setup | 🟡 project live, one check left | Project created and `supabase/migrations/0001_init.sql` applied; public sign-ups disabled; `app/.env.local` holds the URL and anon key (git-ignored, mode 600) while the committed `.env.example` stays blank. Verified over REST: reachable (200), anon insert succeeds (201), anon read-back denied (401), a crafted `rating`/`notes` denied (401), a crafted `status` denied (401). `0002_harden_anon_grants.sql` applied and auto-expose OFF, so anon now gets `401` on read, `PATCH` and `DELETE`. Landlord user created (confirmed, project-owner address). `app/src/lib/supabase.ts` is the lazy singleton (7 tests). **Remaining:** run `npm run verify:connection` to prove the authenticated SELECT — the last item before this row closes. |
 | 1.3 Git, Vercel & env config | 🟡 half-configured | Repo on GitHub (`origin`), `app/vercel.json` present (vite framework, `npm ci`, SPA rewrite), `.gitignore` at root and in `app/` excludes `.env.local`, `.env.example` committed with blank values. **Remaining:** actually connecting the repo to Vercel, setting env vars in the dashboard, and verifying a production deploy. |
 | 2.1 Supabase CRUD for candidates | 🟡 code complete | `app/src/lib/candidates.ts` — `listCandidates`, `getCandidateById`, `submitApplication` (tenant, insert without read-back because `anon` may not SELECT), `createCandidate`, `updateCandidate`, `updateOwnerReview`, `deleteCandidate`; 25 tests assert the exact PostgREST chain, the flattened payloads and that a failure never echoes Rodné číslo. **Remaining:** replacing the localStorage calls in the UI once Sprint 3/4 screens exist. |
 | 2.3 TypeScript data model & validation | 🟡 mostly done | `candidate.ts` (nested canonical record, row/patch/draft types, half-star rating helpers), `candidateSchema.ts` (per-step schemas for Sprint 3.2, whole-application schema, owner-review schema, canonical Slovak error copy) and `listing_id` already nullable in the migration. **Remaining:** `supabase gen types typescript` against the live project to replace the hand-written `CandidateRow`. |
 
-### Security finding — surplus `anon` grants (open, fix ready)
+### Security finding — surplus `anon` grants (**resolved by 0002**)
 
-Verifying the live project over the REST API showed that `anon` carries **SELECT,
+Verifying the live project over the REST API showed that `anon` carried **SELECT,
 UPDATE and DELETE** on `public.candidates`, not just the INSERT that migration
-0001 intended: `PATCH` and `DELETE` against a **non-existent** id answer `204`
-instead of `401 permission denied`, and a read answers `200` with an empty list
-instead of being refused. Cause: the project carries Supabase's default
+0001 intended: `PATCH` and `DELETE` against a **non-existent** id answered `204`
+instead of `401 permission denied`, and a read answered `200` with an empty list
+instead of being refused. Cause: the project carried Supabase's default
 "Automatically expose new tables" grants, so 0001's premise that those grants were
-off is untrue for this project.
+off was untrue for this project.
 
-No applicant data is exposed today — RLS is on, and the only `anon` policy is
-`applicants_may_submit` (INSERT), which is why the read returns `*/0` rows. But the
-surplus grants are a latent hole: they go live the moment a permissive `anon`
+No applicant data was ever exposed — RLS was on, and the only `anon` policy is
+`applicants_may_submit` (INSERT), which is why the read returned `*/0` rows. But
+the surplus grants were a latent hole: they go live the moment a permissive `anon`
 policy is added or RLS is switched off by accident, and 0001's own §9(b)
-verification ("expect anon → INSERT only") can no longer pass.
+verification ("expect anon → INSERT only") could not pass.
 
-**Fix, written and waiting to be applied:** `supabase/migrations/0002_harden_anon_grants.sql`
-(`revoke all on public.candidates from anon` + re-`grant insert`). Its root cause —
-**Project Settings → Data API → Automatically expose new tables** — must also be
-switched **OFF** in the dashboard, or every table added in later sprints starts
-life this permissive.
+**Resolved.** `supabase/migrations/0002_harden_anon_grants.sql` (`revoke all on
+public.candidates from anon` + re-`grant insert`) has been applied, and the root
+cause — **Project Settings → Data API → Automatically expose new tables** — is
+switched **OFF**, so tables added in later sprints do not start life this
+permissive. Re-probing confirms `401 permission denied` on read, `PATCH` and
+`DELETE`, with the tenant INSERT still answering `201`.
+
+**Lesson recorded — `Prefer: tx=rollback` is not honoured here.** Two probe inserts
+sent with that header were **persisted** and were only found later by a
+`select count(*)`. Treat every external write test as permanent: clean up from the
+SQL Editor afterwards, or wrap the statement in a real `begin; … rollback;`
+transaction, which does work in the SQL Editor.
+
+### Verifying the landlord path — `npm run verify:connection`
+
+`app/scripts/verify-connection.mjs` signs in with the landlord credentials and asks
+`public.candidates` for a **count** (`head: true`), never rows — so no applicant
+data, least of all Rodné číslo (§7), is loaded or printed. The password is read
+with the echo switched off, keeping it out of the screen, the shell history and any
+screenshot. Piped input (email on line 1, password on line 2) is supported for
+scripted use. Both branches were exercised against the live project: the
+interactive one prompts, hides the password, and reports a bad credential as
+`Invalid login credentials`.
+
 
 
 ### Carried forward from Phase 1 — compliance backlog
@@ -119,12 +144,13 @@ React rewrite must not inherit:
 
 ### Immediate next actions (start here)
 
-1. **Apply `0002_harden_anon_grants.sql`** and switch
-   **Project Settings → Data API → Automatically expose new tables** OFF. Until
-   then the project is not fail-closed the way 0001 documents it.
-2. **Create the landlord user** (Authentication → Users → Add user → auto-confirm;
-   sign-ups stay disabled), sign in once, and confirm an authenticated read
-   returns rows. That is the last thing standing between 1.2 and "done".
+1. **Run `npm run verify:connection`** in `app/` — it signs in as the landlord and
+   asks for a row count, which proves the authenticated SELECT. That is the last
+   item before 1.2 closes. (0002 is applied and auto-expose is OFF: done.)
+2. **Confirm no probe rows survived.** `Prefer: tx=rollback` turned out not to be
+   honoured, so run in the SQL Editor:
+   `select count(*) from public.candidates where last_name = 'RLS-PROBE-DELETE-ME';`
+   → expect `0`; otherwise delete those rows.
 3. **Finish 1.1** — run `npx shadcn@latest init` in `app/`, add the `/hooks`
    folder, and replace the two placeholder panels with faithful visual ports of
    the prototype layout.
