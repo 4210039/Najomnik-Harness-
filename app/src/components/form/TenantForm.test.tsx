@@ -27,14 +27,28 @@ async function fillStepOne(user: UserEvent): Promise<void> {
 const nextButton = () => screen.getByRole("button", { name: /Ďalej/ });
 const backButton = () => screen.getByRole("button", { name: /Späť/ });
 
-/** Walk from step 1 to step 5, filling the only other required field on the way. */
-async function advanceToLastStep(user: UserEvent): Promise<void> {
+/** Step 4's required move-in date. A date input needs its ISO value set. */
+function setMoveInDate(value = "2026-10-01"): void {
+  fireEvent.change(screen.getByLabelText(/Kedy by ste chceli nasťahovať/), {
+    target: { value },
+  });
+}
+
+/** Walk from step 1 as far as the Byt step. */
+async function advanceToBytStep(user: UserEvent): Promise<void> {
   await fillStepOne(user);
   await user.click(nextButton());
 
   await user.type(screen.getByLabelText(/Odkiaľ ste/), "Košice");
   await user.click(nextButton()); // -> 3 Štúdium & Práca
   await user.click(nextButton()); // -> 4 Byt
+}
+
+/** Walk from step 1 to step 5, filling every required field on the way. */
+async function advanceToLastStep(user: UserEvent): Promise<void> {
+  await advanceToBytStep(user);
+
+  setMoveInDate();
   await user.click(nextButton()); // -> 5 Situácia
 }
 
@@ -312,5 +326,96 @@ it("reveals the study questions only after a studying answer", async () => {
     fireEvent.submit(form as HTMLFormElement);
 
     await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("requires a move-in date before the Byt step can be left", async () => {
+    const user = userEvent.setup();
+    render(<TenantForm />);
+
+    await advanceToBytStep(user);
+
+    expect(nextButton()).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Vyplňte povinné polia, aby ste mohli pokračovať.",
+    );
+
+    setMoveInDate();
+
+    expect(nextButton()).toBeEnabled();
+  });
+
+  it("marks the move-in date as a required field for assistive tech", async () => {
+    const user = userEvent.setup();
+    render(<TenantForm />);
+
+    await advanceToBytStep(user);
+    const date = screen.getByLabelText(/Kedy by ste chceli nasťahovať/);
+
+    expect(date).toBeRequired();
+  });
+
+  it("cannot be advanced past with an impossible move-in date", async () => {
+    const user = userEvent.setup();
+    render(<TenantForm />);
+
+    await advanceToBytStep(user);
+    const date = screen.getByLabelText(/Kedy by ste chceli nasťahovať/);
+    setMoveInDate("2026-02-30");
+    fireEvent.blur(date);
+
+    // A date control normalises an impossible date away instead of holding it,
+    // so the field is simply empty and the step stays blocked. That is also why
+    // `INVALID_DATE_MESSAGE` is only reachable at the schema level, where a
+    // non-empty but unparseable string is the case that matters (covered in
+    // candidateSchema.test.ts).
+    expect(date).toHaveValue("");
+    expect(nextButton()).toBeDisabled();
+    await user.tab();
+  });
+
+  it("treats Enter in a text input as continue, never as submit", async () => {
+    const user = userEvent.setup();
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    await fillStepOne(user);
+    // The exact field that used to trigger a premature save: a date input.
+    await user.click(screen.getByLabelText(/Meno/));
+    fireEvent.keyDown(screen.getByLabelText(/Meno/), { key: "Enter" });
+
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Krok 2 z 5: Pobyt")).toBeInTheDocument();
+  });
+
+  it("moves on to Situácia when Enter is pressed in the Byt date field", async () => {
+    const user = userEvent.setup();
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    await advanceToBytStep(user);
+    setMoveInDate();
+
+    // THE regression test for the reported bug: this exact keystroke used to
+    // submit the application, saving a half-finished record and skipping
+    // Situácia entirely.
+    fireEvent.keyDown(screen.getByLabelText(/Kedy by ste chceli nasťahovať/), {
+      key: "Enter",
+    });
+
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Krok 5 z 5: Situácia")).toBeInTheDocument();
+  });
+
+  it("leaves Enter alone inside a textarea, where it means a newline", async () => {
+    const user = userEvent.setup();
+    submitMock.mockResolvedValue(undefined);
+    render(<TenantForm />);
+
+    await advanceToLastStep(user);
+    const textarea = screen.getByLabelText(/Opíšte vašu aktuálnu bytovú situáciu/);
+    fireEvent.keyDown(textarea, { key: "Enter" });
+
+    expect(submitMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Krok 5 z 5: Situácia")).toBeInTheDocument();
   });
 });

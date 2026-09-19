@@ -199,6 +199,16 @@ describe("step schemas and the whole application", () => {
 
     expect(messageFor(tenantApplicationSchema, freeText)).toBe(INVALID_DATE_MESSAGE);
   });
+
+  it("requires a move-in date on the Byt step", () => {
+    // The landlord needs to know when the flat is wanted, so this field is
+    // mandatory. The column stays nullable: the rule belongs to the form.
+    const apartment = validApplication().apartment;
+
+    expect(messageFor(TENANT_STEP_SCHEMAS[4], { ...apartment, moveInDate: "" })).toBe(
+      REQUIRED_FIELD_MESSAGE,
+    );
+  });
 });
 describe("ownerReviewSchema (owner panel, Sprint 4.3)", () => {
   const VALID_REVIEW = {

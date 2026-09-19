@@ -28,6 +28,13 @@ vi.mock("@/lib/supabase", () => ({
   getSupabase: () => ({ auth: fakeAuth }),
 }));
 
+/**
+ * The panel loads applicants once signed in. Mocked here so these tests stay
+ * about the gate: without it the panel would call a client that has no `from`,
+ * logging a failure that has nothing to do with what is under test.
+ */
+vi.mock("@/lib/candidates", () => ({ listCandidates: vi.fn(async () => []) }));
+
 const LANDLORD = { email: "prenajimatel@example.com" };
 
 function controller(overrides: Partial<OwnerAuthController> = {}): OwnerAuthController {
